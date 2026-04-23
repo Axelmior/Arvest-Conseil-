@@ -2,14 +2,13 @@ import { Wallet, ArrowUpRight, ArrowDownRight, Zap } from 'lucide-react';
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import KPICard from '../components/KPICard';
 import { formatEuro } from '../utils/format';
+import { useData } from '../context/DataContext';
 
 export default function Treasury() {
-  const solde = 0;
-  const encaissements = 0;
-  const decaissements = 0;
-  const previsionJ30 = 0;
+  const { treasury, CASH_EVOLUTION } = useData();
+  const { solde, encaissements, decaissements, previsionJ30 } = treasury;
 
-  const forecastData = [];
+  const forecastData = CASH_EVOLUTION;
   const upcoming = [];
   const outgoing = [];
 

@@ -12,15 +12,12 @@ import {
 } from 'recharts';
 import KPICard from '../components/KPICard';
 import { formatEuro } from '../utils/format';
+import { useData } from '../context/DataContext';
 
 export default function Dashboard() {
-  const kpis = { ca: 0, charges: 0, net: 0, margin: 0 };
-  const MONTHLY_DATA = [];
-  const CASH_EVOLUTION = [];
-  const CATEGORY_DATA = [];
-  const TOP_CLIENTS = [];
+  const { kpis, treasury, MONTHLY_DATA, CASH_EVOLUTION, CATEGORY_DATA, TOP_CLIENTS } = useData();
 
-  const categoryTotal = 0;
+  const categoryTotal = CATEGORY_DATA.reduce((s, c) => s + c.value, 0);
 
   return (
     <>
@@ -79,7 +76,7 @@ export default function Dashboard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {CATEGORY_DATA.map((cat, i) => {
-              const pct = (cat.value / categoryTotal) * 100;
+              const pct = categoryTotal > 0 ? (cat.value / categoryTotal) * 100 : 0;
               return (
                 <div key={i}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
@@ -159,7 +156,7 @@ export default function Dashboard() {
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 12, color: '#737373' }}>Solde actuel</div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#171717' }}>{formatEuro(0)}</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: '#171717' }}>{formatEuro(treasury.solde)}</div>
             </div>
           </div>
           <div style={{ height: 220 }}>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
+import { DataProvider } from '../context/DataContext';
 import './DashboardLayout.css';
 
 const PAGE_META = {
@@ -23,19 +24,21 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+    <DataProvider>
+      <div className="dashboard-layout">
+        <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
-      <main className="dashboard-main">
-        <div className="dashboard-content">
-          <TopBar
-            title={meta.title}
-            subtitle={meta.subtitle}
-            onMenuClick={() => setMobileOpen(true)}
-          />
-          <Outlet />
-        </div>
-      </main>
-    </div>
+        <main className="dashboard-main">
+          <div className="dashboard-content">
+            <TopBar
+              title={meta.title}
+              subtitle={meta.subtitle}
+              onMenuClick={() => setMobileOpen(true)}
+            />
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </DataProvider>
   );
 }

@@ -10,8 +10,8 @@ import {
   Clock,
   X
 } from 'lucide-react';
-import { MOCK_SALES } from '../data/mockData';
 import { formatEuro, formatEuroDecimal, formatDate } from '../utils/format';
+import { useData } from '../context/DataContext';
 
 function SaleModal({ sale, onClose, onSave }) {
   const [form, setForm] = useState(
@@ -115,7 +115,7 @@ function SaleModal({ sale, onClose, onSave }) {
 }
 
 export default function Sales() {
-  const [sales, setSales] = useState([]);
+  const { sales, setSales } = useData();
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [sortDir, setSortDir] = useState('desc');

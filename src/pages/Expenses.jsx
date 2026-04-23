@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, Plus, Upload, Edit2, Trash2, ChevronDown, X } from 'lucide-react';
-import { MOCK_EXPENSES } from '../data/mockData';
 import { formatEuro, formatEuroDecimal, formatDate } from '../utils/format';
+import { useData } from '../context/DataContext';
 
 function ExpenseModal({ expense, onClose, onSave }) {
   const [form, setForm] = useState(
@@ -111,7 +111,7 @@ function ExpenseModal({ expense, onClose, onSave }) {
 }
 
 export default function Expenses() {
-  const [expenses, setExpenses] = useState([]);
+  const { expenses, setExpenses } = useData();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');
