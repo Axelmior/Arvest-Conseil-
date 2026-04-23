@@ -5,12 +5,21 @@ import { formatEuro } from '../utils/format';
 import { useData } from '../context/DataContext';
 
 export default function Treasury() {
-  const { treasury, CASH_EVOLUTION } = useData();
+  const { treasury, CASH_EVOLUTION, sales, expenses } = useData();
   const { solde, encaissements, decaissements, previsionJ30 } = treasury;
 
   const forecastData = CASH_EVOLUTION;
-  const upcoming = [];
-  const outgoing = [];
+
+  const upcoming = sales
+    .filter((s) => s.status === 'pending')
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 5)
+    .map((s) => ({ name: s.client || s.description || '—', date: s.date, amount: s.ttc }));
+
+  const outgoing = expenses
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 5)
+    .map((e) => ({ name: e.supplier || e.description || '—', date: e.date, amount: e.ttc }));
 
   return (
     <>

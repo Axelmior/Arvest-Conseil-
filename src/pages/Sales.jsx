@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { formatEuro, formatEuroDecimal, formatDate } from '../utils/format';
 import { useData } from '../context/DataContext';
+import ImportModal from '../components/ImportModal';
 
 function SaleModal({ sale, onClose, onSave }) {
   const [form, setForm] = useState(
@@ -115,8 +116,9 @@ function SaleModal({ sale, onClose, onSave }) {
 }
 
 export default function Sales() {
-  const { sales, setSales } = useData();
+  const { sales, setSales, importAll } = useData();
   const [search, setSearch] = useState('');
+  const [showImport, setShowImport] = useState(false);
   const [sortBy, setSortBy] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -217,7 +219,7 @@ export default function Sales() {
             <option value="paid">Payé</option>
             <option value="pending">En attente</option>
           </select>
-          <button className="btn btn-secondary">
+          <button className="btn btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} /> Importer
           </button>
           <button className="btn btn-primary" onClick={openNew}>
@@ -292,6 +294,13 @@ export default function Sales() {
       </div>
 
       {showModal && <SaleModal sale={editing} onClose={() => { setShowModal(false); setEditing(null); }} onSave={handleSave} />}
+      {showImport && (
+        <ImportModal
+          defaultType="sales"
+          onClose={() => setShowImport(false)}
+          onImport={(parsed) => { importAll(parsed); setShowImport(false); }}
+        />
+      )}
     </>
   );
 }

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { FileSpreadsheet, FileText, Upload, Download } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
+import ImportModal from '../components/ImportModal';
 
 const TABS = [
   { id: 'profile', label: 'Profil' },
@@ -12,7 +14,9 @@ const TABS = [
 
 export default function Settings() {
   const { user } = useAuth();
+  const { importAll } = useData();
   const [tab, setTab] = useState('profile');
+  const [importModal, setImportModal] = useState(null); // 'sales' | 'expenses' | 'bank' | null
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2)
@@ -144,13 +148,38 @@ export default function Settings() {
           <div style={{ maxWidth: 640 }}>
             <h3 style={{ fontSize: 18, fontWeight: 600, color: '#171717', marginBottom: 4 }}>Imports et exports</h3>
             <p style={{ fontSize: 14, color: '#737373', marginBottom: 24 }}>
-              Importez vos données depuis Excel ou CSV, exportez vos tableaux de bord.
+              Importez vos données depuis Excel, CSV ou export bancaire. Les KPI se recalculent immédiatement.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { icon: FileSpreadsheet, title: 'Importer des ventes', desc: 'Fichier Excel ou CSV · Modèle disponible', action: 'Importer', variant: 'secondary', act: Upload, gold: true },
-                { icon: FileSpreadsheet, title: 'Importer des charges', desc: 'Fichier Excel ou CSV · Modèle disponible', action: 'Importer', variant: 'secondary', act: Upload, gold: true },
-                { icon: FileText, title: 'Exporter le dashboard en PDF', desc: 'Rapport mensuel complet · Prêt à partager', action: 'Exporter', variant: 'primary', act: Download, gold: false }
+                {
+                  icon: FileSpreadsheet,
+                  title: 'Importer des ventes',
+                  desc: 'Excel (.xlsx), CSV · colonnes date, client, montant détectées automatiquement',
+                  action: 'Importer', variant: 'secondary', act: Upload, gold: true,
+                  onClick: () => setImportModal('sales'),
+                },
+                {
+                  icon: FileSpreadsheet,
+                  title: 'Importer des charges',
+                  desc: 'Excel (.xlsx), CSV · colonnes date, fournisseur, montant détectées automatiquement',
+                  action: 'Importer', variant: 'secondary', act: Upload, gold: true,
+                  onClick: () => setImportModal('expenses'),
+                },
+                {
+                  icon: FileSpreadsheet,
+                  title: 'Import relevé bancaire',
+                  desc: 'CSV export banque · crédits → ventes, débits → charges',
+                  action: 'Importer', variant: 'secondary', act: Upload, gold: true,
+                  onClick: () => setImportModal('bank'),
+                },
+                {
+                  icon: FileText,
+                  title: 'Exporter le dashboard en PDF',
+                  desc: 'Rapport mensuel complet · Prêt à partager',
+                  action: 'Exporter', variant: 'primary', act: Download, gold: false,
+                  onClick: () => window.print(),
+                },
               ].map((it, i) => (
                 <div
                   key={i}
@@ -160,13 +189,9 @@ export default function Settings() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div
                       style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 8,
+                        width: 40, height: 40, borderRadius: 8,
                         background: it.gold ? 'rgba(198, 167, 94, 0.1)' : '#f5f5f5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >
                       <it.icon size={18} color={it.gold ? '#C6A75E' : '#525252'} />
@@ -176,13 +201,20 @@ export default function Settings() {
                       <div style={{ fontSize: 12, color: '#737373' }}>{it.desc}</div>
                     </div>
                   </div>
-                  <button className={`btn btn-${it.variant} btn-sm`}>
+                  <button className={`btn btn-${it.variant} btn-sm`} onClick={it.onClick}>
                     <it.act size={14} /> {it.action}
                   </button>
                 </div>
               ))}
             </div>
           </div>
+        )}
+        {importModal && (
+          <ImportModal
+            defaultType={importModal}
+            onClose={() => setImportModal(null)}
+            onImport={(parsed) => { importAll(parsed); setImportModal(null); }}
+          />
         )}
 
         {tab === 'billing' && (

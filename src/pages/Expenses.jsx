@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, Plus, Upload, Edit2, Trash2, ChevronDown, X } from 'lucide-react';
 import { formatEuro, formatEuroDecimal, formatDate } from '../utils/format';
 import { useData } from '../context/DataContext';
+import ImportModal from '../components/ImportModal';
 
 function ExpenseModal({ expense, onClose, onSave }) {
   const [form, setForm] = useState(
@@ -111,8 +112,9 @@ function ExpenseModal({ expense, onClose, onSave }) {
 }
 
 export default function Expenses() {
-  const { expenses, setExpenses } = useData();
+  const { expenses, setExpenses, importAll } = useData();
   const [search, setSearch] = useState('');
+  const [showImport, setShowImport] = useState(false);
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
@@ -200,7 +202,7 @@ export default function Expenses() {
             <option value="fixed">Fixes</option>
             <option value="variable">Variables</option>
           </select>
-          <button className="btn btn-secondary">
+          <button className="btn btn-secondary" onClick={() => setShowImport(true)}>
             <Upload size={16} /> Importer
           </button>
           <button
@@ -277,6 +279,13 @@ export default function Expenses() {
       </div>
 
       {showModal && <ExpenseModal expense={editing} onClose={() => { setShowModal(false); setEditing(null); }} onSave={handleSave} />}
+      {showImport && (
+        <ImportModal
+          defaultType="expenses"
+          onClose={() => setShowImport(false)}
+          onImport={(parsed) => { importAll(parsed); setShowImport(false); }}
+        />
+      )}
     </>
   );
 }

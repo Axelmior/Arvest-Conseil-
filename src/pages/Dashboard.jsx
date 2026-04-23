@@ -23,10 +23,36 @@ export default function Dashboard() {
     <>
       {/* KPIs */}
       <div className="dash-kpis">
-        <KPICard label="Chiffre d'affaires" value={formatEuro(kpis.ca)} trend="up" trendValue="+12,4%" icon={TrendingUp} accent />
-        <KPICard label="Charges totales" value={formatEuro(kpis.charges)} trend="up" trendValue="+3,2%" icon={Receipt} />
-        <KPICard label="Résultat net" value={formatEuro(kpis.net)} trend="up" trendValue="+18,7%" icon={Target} accent />
-        <KPICard label="Marge" value={`${kpis.margin}%`} trend="up" trendValue="+2,1pt" icon={Award} />
+        <KPICard
+          label="Chiffre d'affaires"
+          value={formatEuro(kpis.ca)}
+          trend={kpis.ca >= 0 ? 'up' : 'down'}
+          trendValue={`${kpis.invoices} facture${kpis.invoices !== 1 ? 's' : ''}`}
+          icon={TrendingUp}
+          accent
+        />
+        <KPICard
+          label="Charges totales"
+          value={formatEuro(kpis.charges)}
+          trend="up"
+          trendValue={`TVA collectée : ${formatEuro(kpis.tva)}`}
+          icon={Receipt}
+        />
+        <KPICard
+          label="Résultat net"
+          value={formatEuro(kpis.net)}
+          trend={kpis.net >= 0 ? 'up' : 'down'}
+          trendValue={kpis.net >= 0 ? 'Bénéfice' : 'Déficit'}
+          icon={Target}
+          accent
+        />
+        <KPICard
+          label="Marge nette"
+          value={`${kpis.margin}%`}
+          trend={kpis.margin >= 0 ? 'up' : 'down'}
+          trendValue={`${kpis.clients} client${kpis.clients !== 1 ? 's' : ''}`}
+          icon={Award}
+        />
       </div>
 
       {/* Graphiques */}
