@@ -115,7 +115,7 @@ function SaleModal({ sale, onClose, onSave }) {
 }
 
 export default function Sales() {
-  const [sales, setSales] = useState(MOCK_SALES);
+  const [sales, setSales] = useState([]);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [sortDir, setSortDir] = useState('desc');

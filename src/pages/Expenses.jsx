@@ -111,7 +111,7 @@ function ExpenseModal({ expense, onClose, onSave }) {
 }
 
 export default function Expenses() {
-  const [expenses, setExpenses] = useState(MOCK_EXPENSES);
+  const [expenses, setExpenses] = useState([]);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');

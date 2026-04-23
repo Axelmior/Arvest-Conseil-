@@ -4,32 +4,14 @@ import KPICard from '../components/KPICard';
 import { formatEuro } from '../utils/format';
 
 export default function Treasury() {
-  const solde = 36200;
-  const encaissements = 12400;
-  const decaissements = 4100;
-  const previsionJ30 = solde + 14800 - 4500;
+  const solde = 0;
+  const encaissements = 0;
+  const decaissements = 0;
+  const previsionJ30 = 0;
 
-  const forecastData = [
-    { day: 'J', solde: solde },
-    { day: 'J+5', solde: solde + 2800 },
-    { day: 'J+10', solde: solde + 5200 },
-    { day: 'J+15', solde: solde + 4100 },
-    { day: 'J+20', solde: solde + 7400 },
-    { day: 'J+25', solde: solde + 9200 },
-    { day: 'J+30', solde: previsionJ30 }
-  ];
-
-  const upcoming = [
-    { name: 'Studio Lumière', amount: 3840, date: 'Dans 5 jours' },
-    { name: 'Café des Arts', amount: 960, date: 'Dans 12 jours' },
-    { name: 'Boucherie Leblanc', amount: 2160, date: 'Dans 18 jours' }
-  ];
-
-  const outgoing = [
-    { name: 'Loyer bureau', amount: 1200, date: 'Le 1er du mois' },
-    { name: 'URSSAF', amount: 850, date: 'Le 15' },
-    { name: 'Google Ads', amount: 450, date: 'Le 20' }
-  ];
+  const forecastData = [];
+  const upcoming = [];
+  const outgoing = [];
 
   return (
     <>
@@ -118,7 +100,11 @@ export default function Treasury() {
         <div className="card" style={{ padding: 24 }}>
           <h3 className="section-title" style={{ marginBottom: 16 }}>Encaissements à venir</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {upcoming.map((item, i) => (
+            {upcoming.length === 0 ? (
+              <p style={{ fontSize: 13, color: '#a3a3a3', textAlign: 'center', padding: '24px 0' }}>
+                Aucun encaissement prévu
+              </p>
+            ) : upcoming.map((item, i) => (
               <div
                 key={i}
                 style={{
@@ -144,7 +130,11 @@ export default function Treasury() {
         <div className="card" style={{ padding: 24 }}>
           <h3 className="section-title" style={{ marginBottom: 16 }}>Décaissements prévus</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {outgoing.map((item, i) => (
+            {outgoing.length === 0 ? (
+              <p style={{ fontSize: 13, color: '#a3a3a3', textAlign: 'center', padding: '24px 0' }}>
+                Aucun décaissement prévu
+              </p>
+            ) : outgoing.map((item, i) => (
               <div
                 key={i}
                 style={{

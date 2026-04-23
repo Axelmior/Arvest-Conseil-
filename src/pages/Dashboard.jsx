@@ -11,13 +11,16 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import KPICard from '../components/KPICard';
-import { MONTHLY_DATA, CASH_EVOLUTION, CATEGORY_DATA, TOP_CLIENTS } from '../data/mockData';
 import { formatEuro } from '../utils/format';
 
 export default function Dashboard() {
-  const kpis = { ca: 68400, charges: 24700, net: 43700, margin: 63.9 };
+  const kpis = { ca: 0, charges: 0, net: 0, margin: 0 };
+  const MONTHLY_DATA = [];
+  const CASH_EVOLUTION = [];
+  const CATEGORY_DATA = [];
+  const TOP_CLIENTS = [];
 
-  const categoryTotal = CATEGORY_DATA.reduce((s, c) => s + c.value, 0);
+  const categoryTotal = 0;
 
   return (
     <>
@@ -156,7 +159,7 @@ export default function Dashboard() {
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 12, color: '#737373' }}>Solde actuel</div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#171717' }}>{formatEuro(36200)}</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: '#171717' }}>{formatEuro(0)}</div>
             </div>
           </div>
           <div style={{ height: 220 }}>
