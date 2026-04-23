@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-// ─── Admin emails (hardcoded for this B2B SaaS) ──────────────────────────────
-const ADMIN_EMAILS = ['axelmiorcec29590@gmail.com'];
+// ─── Admin configuration ──────────────────────────────────────────────────────
+const ADMIN_EMAIL = 'axelmiorcec29590@gmail.com';
+const isAdminEmail = (email) => email.toLowerCase() === ADMIN_EMAIL;
 
 // ─── Users registry (localStorage) ──────────────────────────────────────────
 const REGISTRY_KEY = 'arvest_users_registry';
@@ -24,35 +25,41 @@ function saveRegistry(users) {
 }
 
 function findInRegistry(email) {
-  return loadRegistry().find((u) => u.email === email) || null;
+  return loadRegistry().find((u) => u.email === email.toLowerCase()) || null;
 }
 
-function upsertRegistry(entry) {
+/**
+ * Insert or update a user entry in the registry.
+ * Returns the full updated entry.
+ */
+function upsertRegistry(patch) {
   const reg = loadRegistry();
-  const idx = reg.findIndex((u) => u.email === entry.email);
+  const idx = reg.findIndex((u) => u.email === patch.email.toLowerCase());
   if (idx !== -1) {
-    reg[idx] = { ...reg[idx], ...entry };
-  } else {
-    reg.push(entry);
+    reg[idx] = { ...reg[idx], ...patch };
+    saveRegistry(reg);
+    return reg[idx];
   }
+  reg.push(patch);
   saveRegistry(reg);
-  return idx !== -1 ? reg[idx] : entry;
+  return patch;
 }
 
 function buildEntry(email, name, company) {
-  const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
+  const admin = isAdminEmail(email);
   return {
     email:        email.toLowerCase(),
-    name:         name || email.split('@')[0],
+    name:         name  || email.split('@')[0],
     company:      company || 'Mon entreprise',
-    isAdmin,
-    isAuthorized: isAdmin, // admins are auto-authorized
+    role:         admin ? 'admin' : 'user',   // role field
+    isAdmin:      admin,
+    isAuthorized: admin,                       // admins auto-authorized
     createdAt:    new Date().toISOString(),
     requestedAt:  null,
   };
 }
 
-// ─── Session helpers (sessionStorage for current user) ───────────────────────
+// ─── Session (sessionStorage keeps the current browser tab's user) ────────────
 const SESSION_KEY = 'arvest_session';
 
 function loadSession() {
@@ -67,7 +74,7 @@ function loadSession() {
 function saveSession(user) {
   try {
     if (user) sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    else sessionStorage.removeItem(SESSION_KEY);
+    else       sessionStorage.removeItem(SESSION_KEY);
   } catch {}
 }
 
@@ -78,66 +85,58 @@ export function AuthProvider({ children }) {
   const [user,    setUser]    = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session — always re-read isAuthorized from registry so admin
-  // activation takes effect without requiring a new login.
+  // On mount: restore session, but always re-read isAuthorized / role from
+  // the registry so admin activation takes effect immediately.
   useEffect(() => {
     const session = loadSession();
     if (session?.email) {
       const entry = findInRegistry(session.email);
       if (entry) {
-        const fresh = { ...session, isAuthorized: entry.isAuthorized, isAdmin: entry.isAdmin };
+        const fresh = mergeSession(session, entry);
         setUser(fresh);
         saveSession(fresh);
       } else {
-        // Session exists but no registry entry → clear session
         saveSession(null);
       }
     }
     setLoading(false);
   }, []);
 
-  // Re-check authorization status (called from PendingAccess "refresh" button)
+  // Re-reads the registry and refreshes current user's auth state.
+  // Returns the fresh user object so callers can act on the new state.
   const refreshAuth = useCallback(() => {
-    if (!user?.email) return;
+    if (!user?.email) return null;
     const entry = findInRegistry(user.email);
-    if (entry) {
-      const fresh = { ...user, isAuthorized: entry.isAuthorized, isAdmin: entry.isAdmin };
-      setUser(fresh);
-      saveSession(fresh);
-    }
-  }, [user]);
-
-  const signup = async ({ email, name, company }) => {
-    const existing = findInRegistry(email.toLowerCase());
-    if (existing) {
-      // Account already exists — just log them in
-      const u = { ...existing };
-      setUser(u);
-      saveSession(u);
-      return u;
-    }
-    const entry  = buildEntry(email, name, company);
-    const stored = upsertRegistry(entry);
-    setUser(stored);
-    saveSession(stored);
-    return stored;
-  };
-
-  const login = async ({ email }) => {
-    const entry = findInRegistry(email.toLowerCase());
-    if (!entry) {
-      // Unknown email — create with isAuthorized: false (no account yet)
-      const newEntry = buildEntry(email, '', '');
-      upsertRegistry(newEntry);
-      setUser(newEntry);
-      saveSession(newEntry);
-      return newEntry;
-    }
-    // Re-read fresh status
-    const fresh = { ...entry };
+    if (!entry) return null;
+    const fresh = mergeSession(user, entry);
     setUser(fresh);
     saveSession(fresh);
     return fresh;
+  }, [user]);
+
+  const signup = async ({ email, name, company }) => {
+    const existing = findInRegistry(email);
+    if (existing) {
+      setUser(existing);
+      saveSession(existing);
+      return existing;
+    }
+    const entry = buildEntry(email, name, company);
+    upsertRegistry(entry);
+    setUser(entry);
+    saveSession(entry);
+    return entry;
+  };
+
+  const login = async ({ email }) => {
+    let entry = findInRegistry(email);
+    if (!entry) {
+      entry = buildEntry(email, '', '');
+      upsertRegistry(entry);
+    }
+    setUser(entry);
+    saveSession(entry);
+    return entry;
   };
 
   const logout = () => {
@@ -145,31 +144,32 @@ export function AuthProvider({ children }) {
     saveSession(null);
   };
 
-  // Called from PendingAccess — marks requestedAt in registry
+  // Marks requestedAt on the current user's registry entry.
   const requestAccess = useCallback(() => {
     if (!user?.email) return;
-    const updated = upsertRegistry({ email: user.email, requestedAt: new Date().toISOString() });
-    const fresh = { ...user, requestedAt: updated.requestedAt };
+    const ts = new Date().toISOString();
+    upsertRegistry({ email: user.email, requestedAt: ts });
+    const fresh = { ...user, requestedAt: ts };
     setUser(fresh);
     saveSession(fresh);
   }, [user]);
 
-  // ── Admin functions ──────────────────────────────────────────────────────
-  const getAllUsers = useCallback(() => {
-    return loadRegistry().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, []);
+  // ── Admin-only functions ─────────────────────────────────────────────────
+  const getAllUsers = useCallback(
+    () => loadRegistry().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    []
+  );
 
   const authorizeUser = useCallback((email) => {
-    upsertRegistry({ email, isAuthorized: true });
+    upsertRegistry({ email: email.toLowerCase(), isAuthorized: true });
   }, []);
 
-  const revokeUser = useCallback((email) => {
-    upsertRegistry({ email, isAuthorized: false });
+  const blockUser = useCallback((email) => {
+    upsertRegistry({ email: email.toLowerCase(), isAuthorized: false });
   }, []);
 
   const deleteUser = useCallback((email) => {
-    const reg = loadRegistry().filter((u) => u.email !== email);
-    saveRegistry(reg);
+    saveRegistry(loadRegistry().filter((u) => u.email !== email.toLowerCase()));
   }, []);
 
   return (
@@ -184,7 +184,7 @@ export function AuthProvider({ children }) {
       requestAccess,
       getAllUsers,
       authorizeUser,
-      revokeUser,
+      blockUser,
       deleteUser,
     }}>
       {children}
@@ -196,4 +196,14 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be inside AuthProvider');
   return ctx;
+}
+
+// ─── Internal helpers ─────────────────────────────────────────────────────────
+function mergeSession(session, entry) {
+  return {
+    ...session,
+    isAuthorized: entry.isAuthorized,
+    isAdmin:      entry.isAdmin,
+    role:         entry.role,
+  };
 }
