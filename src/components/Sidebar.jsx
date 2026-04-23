@@ -7,7 +7,8 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  X
+  X,
+  ShieldCheck
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '../context/AuthContext';
@@ -60,6 +61,22 @@ export default function Sidebar({ mobileOpen, onClose }) {
             <span>{item.label}</span>
           </NavLink>
         ))}
+
+        {user?.isAdmin && (
+          <>
+            <div className="sidebar-nav-label" style={{ marginTop: 16 }}>Administration</div>
+            <NavLink
+              to="/admin"
+              onClick={onClose}
+              className={({ isActive }) =>
+                isActive ? 'sidebar-link sidebar-link-active' : 'sidebar-link'
+              }
+            >
+              <ShieldCheck size={16} strokeWidth={2} />
+              <span>Panneau admin</span>
+            </NavLink>
+          </>
+        )}
       </nav>
 
       <div className="sidebar-footer">

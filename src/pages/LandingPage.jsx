@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -8,10 +9,91 @@ import {
   Receipt,
   Wallet,
   BarChart3,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Lock,
+  Send,
+  X
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import './LandingPage.css';
+
+const PRICING_FEATURES = [
+  'Tableau de bord KPI en temps réel',
+  'Suivi des ventes et encaissements',
+  'Gestion des charges (fixes & variables)',
+  'Import Excel, CSV, relevé bancaire',
+  'Trésorerie & prévisions 30 jours',
+  'Analyses et recommandations',
+  'Support dédié par email',
+  'Données sécurisées et privées',
+];
+
+function RequestModal({ onClose }) {
+  const [email, setEmail]       = useState('');
+  const [name, setName]         = useState('');
+  const [company, setCompany]   = useState('');
+  const [sent, setSent]         = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // No backend — just redirect to signup with pre-filled context
+    setSent(true);
+  };
+
+  if (sent) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-card" style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(198,167,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <CheckCircle2 size={26} color="#C6A75E" />
+          </div>
+          <h3 className="modal-title" style={{ marginBottom: 12 }}>Demande envoyée !</h3>
+          <p style={{ fontSize: 14, color: '#525252', marginBottom: 24, lineHeight: 1.6 }}>
+            Créez maintenant votre compte pour finaliser votre inscription. Vous serez notifié dès validation de votre accès.
+          </p>
+          <Link to="/signup" className="btn btn-primary btn-block" onClick={onClose}>
+            Créer mon compte <ArrowRight size={14} />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <form className="modal-card" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
+        <div className="modal-head">
+          <h3 className="modal-title">Demander un accès</h3>
+          <button type="button" onClick={onClose} className="modal-close"><X size={18} /></button>
+        </div>
+        <p style={{ fontSize: 14, color: '#525252', marginBottom: 20, lineHeight: 1.6 }}>
+          Arvest Pilot est accessible sur invitation uniquement à <strong>49 € / mois</strong>.
+          Laissez vos coordonnées et nous vous activerons manuellement.
+        </p>
+        <div className="modal-body">
+          <div>
+            <label className="label">Nom complet</label>
+            <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" required />
+          </div>
+          <div>
+            <label className="label">Email professionnel</label>
+            <input type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@entreprise.com" required />
+          </div>
+          <div>
+            <label className="label">Entreprise</label>
+            <input className="input" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Ma société" />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="btn btn-secondary">Annuler</button>
+          <button type="submit" className="btn btn-gold">
+            <Send size={14} /> Envoyer la demande
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
 
 const FEATURES = [
   { icon: LayoutDashboard, title: 'Tableau de bord', desc: "Vos KPI essentiels en un coup d'œil : CA, charges, résultat, marge." },
@@ -23,6 +105,8 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
+  const [showRequestModal, setShowRequestModal] = useState(false);
+
   return (
     <div className="landing">
       {/* Décorations de fond */}
@@ -36,11 +120,12 @@ export default function LandingPage() {
           <nav className="landing-nav">
             <a href="#features">Fonctionnalités</a>
             <a href="#pricing">Tarifs</a>
-            <a href="#about">À propos</a>
           </nav>
           <div className="flex items-center gap-3">
             <Link to="/login" className="btn btn-ghost">Se connecter</Link>
-            <Link to="/signup" className="btn btn-primary">Demander une démo</Link>
+            <button className="btn btn-primary" onClick={() => setShowRequestModal(true)}>
+              Demander un accès
+            </button>
           </div>
         </div>
       </header>
@@ -62,10 +147,10 @@ export default function LandingPage() {
             rentabilité avec un outil simple et clair.
           </p>
           <div className="landing-cta">
-            <Link to="/signup" className="btn btn-gold btn-lg">
-              Demander une démo
+            <button className="btn btn-gold btn-lg" onClick={() => setShowRequestModal(true)}>
+              Demander un accès
               <ArrowRight size={16} />
-            </Link>
+            </button>
             <Link to="/login" className="btn btn-secondary btn-lg">Se connecter</Link>
           </div>
 
@@ -144,6 +229,62 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section id="pricing" className="landing-pricing">
+        <div className="landing-container">
+          <div className="landing-section-head">
+            <div className="landing-eyebrow">Tarifs</div>
+            <h2 className="landing-h2">Simple. Transparent. Sans surprise.</h2>
+            <p className="landing-lead">Un seul plan, tout inclus. Accès sur invitation uniquement.</p>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div className="landing-pricing-card">
+              {/* Badge invitation */}
+              <div className="landing-pricing-badge">
+                <Lock size={11} />
+                Accès sur invitation uniquement
+              </div>
+
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#737373', fontWeight: 500 }}>
+                  Arvest Pilot Business
+                </div>
+              </div>
+
+              <div className="landing-pricing-price">
+                49 <span className="landing-pricing-unit">€ / mois</span>
+              </div>
+              <div style={{ fontSize: 13, color: '#737373', marginBottom: 32 }}>
+                HT · géré hors site · sans engagement
+              </div>
+
+              <ul className="landing-pricing-features">
+                {PRICING_FEATURES.map((f, i) => (
+                  <li key={i}>
+                    <CheckCircle2 size={14} color="#C6A75E" style={{ flexShrink: 0 }} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                className="btn btn-gold btn-block btn-lg"
+                style={{ marginTop: 32 }}
+                onClick={() => setShowRequestModal(true)}
+              >
+                <Send size={15} />
+                Demander un accès
+              </button>
+
+              <p style={{ fontSize: 12, color: '#a3a3a3', textAlign: 'center', marginTop: 16, lineHeight: 1.5 }}>
+                Pas de paiement en ligne · Facturation manuelle après activation
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA final */}
       <section className="landing-container">
         <div className="landing-cta-block">
@@ -155,10 +296,10 @@ export default function LandingPage() {
               Arvest Pilot.
             </p>
             <div className="landing-cta-actions">
-              <Link to="/signup" className="btn btn-gold btn-lg">
-                Demander une démo
+              <button className="btn btn-gold btn-lg" onClick={() => setShowRequestModal(true)}>
+                Demander un accès
                 <ArrowRight size={16} />
-              </Link>
+              </button>
               <Link to="/login" className="landing-link-light">
                 Se connecter <ChevronRight size={14} />
               </Link>
@@ -166,6 +307,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {showRequestModal && <RequestModal onClose={() => setShowRequestModal(false)} />}
 
       {/* Footer */}
       <footer className="landing-footer">
