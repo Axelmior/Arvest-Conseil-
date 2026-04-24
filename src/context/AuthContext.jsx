@@ -51,9 +51,11 @@ function buildEntry(email, name, company) {
     email:        email.toLowerCase(),
     name:         name  || email.split('@')[0],
     company:      company || 'Mon entreprise',
-    role:         admin ? 'admin' : 'user',   // role field
+    phone:        '',
+    fonction:     '',
+    role:         admin ? 'admin' : 'user',
     isAdmin:      admin,
-    isAuthorized: admin,                       // admins auto-authorized
+    isAuthorized: admin,
     createdAt:    new Date().toISOString(),
     requestedAt:  null,
   };
@@ -172,6 +174,18 @@ export function AuthProvider({ children }) {
     saveRegistry(loadRegistry().filter((u) => u.email !== email.toLowerCase()));
   }, []);
 
+  const updateProfile = useCallback((patch) => {
+    if (!user?.email) return;
+    const allowed = {};
+    if (patch.name     !== undefined) allowed.name     = patch.name;
+    if (patch.phone    !== undefined) allowed.phone    = patch.phone;
+    if (patch.fonction !== undefined) allowed.fonction = patch.fonction;
+    upsertRegistry({ email: user.email, ...allowed });
+    const fresh = { ...user, ...allowed };
+    setUser(fresh);
+    saveSession(fresh);
+  }, [user]);
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -186,6 +200,7 @@ export function AuthProvider({ children }) {
       authorizeUser,
       blockUser,
       deleteUser,
+      updateProfile,
     }}>
       {children}
     </AuthContext.Provider>

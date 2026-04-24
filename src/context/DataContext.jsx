@@ -154,6 +154,25 @@ export function DataProvider({ children }) {
       .map(([name, value], i) => ({ name, value: Math.round(value), color: palette[i] }));
   }, [expensesRaw]);
 
+  // Future cash flows for the next 60 days (used by Treasury forecast)
+  const futureFlows = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const horizon = new Date();
+    horizon.setDate(horizon.getDate() + 60);
+    const maxDate = horizon.toISOString().slice(0, 10);
+
+    const inc = salesRaw
+      .filter((s) => s.status === 'pending')
+      .map((s) => ({ ...s, effectiveDate: s.dueDate || s.date, kind: 'sale' }))
+      .filter((s) => s.effectiveDate >= today && s.effectiveDate <= maxDate);
+
+    const out = expensesRaw
+      .map((e) => ({ ...e, effectiveDate: e.dueDate || e.date, kind: 'expense' }))
+      .filter((e) => e.effectiveDate >= today && e.effectiveDate <= maxDate);
+
+    return [...inc, ...out].sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
+  }, [salesRaw, expensesRaw]);
+
   // Top 5 clients by sales TTC
   const TOP_CLIENTS = useMemo(() => {
     const grouped = {};
@@ -187,6 +206,7 @@ export function DataProvider({ children }) {
       CASH_EVOLUTION,
       CATEGORY_DATA,
       TOP_CLIENTS,
+      futureFlows,
     }}>
       {children}
     </DataContext.Provider>

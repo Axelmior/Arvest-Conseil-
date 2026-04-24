@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Logo from './Logo';
 import { useAuth } from '../context/AuthContext';
+import { useCompany } from '../context/CompanyContext';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar({ mobileOpen, onClose }) {
   const { user, logout } = useAuth();
+  const { company } = useCompany();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -85,7 +87,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
             <div className="user-avatar">{initials}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="user-name">{user?.name}</div>
-              <div className="user-company">{user?.company}</div>
+              <div className="user-company">{company?.legalName || user?.company}</div>
             </div>
           </div>
           <button onClick={handleLogout} className="logout-btn">

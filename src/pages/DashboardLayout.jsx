@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import { DataProvider } from '../context/DataContext';
+import { CompanyProvider } from '../context/CompanyContext';
 import './DashboardLayout.css';
 
 const PAGE_META = {
@@ -25,6 +26,7 @@ export default function DashboardLayout() {
 
   return (
     <DataProvider>
+      <CompanyProvider>
       <div className="dashboard-layout">
         <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
@@ -39,6 +41,7 @@ export default function DashboardLayout() {
           </div>
         </main>
       </div>
+      </CompanyProvider>
     </DataProvider>
   );
 }

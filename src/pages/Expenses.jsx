@@ -8,6 +8,7 @@ function ExpenseModal({ expense, onClose, onSave }) {
   const [form, setForm] = useState(
     expense || {
       date: new Date().toISOString().slice(0, 10),
+      dueDate: '',
       supplier: '',
       category: 'Logiciels',
       description: '',
@@ -45,12 +46,24 @@ function ExpenseModal({ expense, onClose, onSave }) {
               <input type="date" className="input" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
             </div>
             <div>
-              <label className="label">Type</label>
-              <select className="select" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                <option value="fixed">Fixe</option>
-                <option value="variable">Variable</option>
-              </select>
+              <label className="label">
+                Date d&apos;échéance
+                <span style={{ fontWeight: 400, color: '#a3a3a3', marginLeft: 4 }}>(optionnel)</span>
+              </label>
+              <input
+                type="date"
+                className="input"
+                value={form.dueDate || ''}
+                onChange={(e) => setForm({ ...form, dueDate: e.target.value || undefined })}
+              />
             </div>
+          </div>
+          <div>
+            <label className="label">Type</label>
+            <select className="select" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+              <option value="fixed">Fixe</option>
+              <option value="variable">Variable</option>
+            </select>
           </div>
           <div>
             <label className="label">Fournisseur</label>

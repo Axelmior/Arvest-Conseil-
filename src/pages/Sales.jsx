@@ -18,6 +18,7 @@ function SaleModal({ sale, onClose, onSave }) {
   const [form, setForm] = useState(
     sale || {
       date: new Date().toISOString().slice(0, 10),
+      dueDate: '',
       client: '',
       category: 'Conseil',
       description: '',
@@ -51,16 +52,28 @@ function SaleModal({ sale, onClose, onSave }) {
         <div className="modal-body">
           <div className="grid grid-2-mobile" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label className="label">Date</label>
+              <label className="label">Date de facturation</label>
               <input type="date" className="input" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
             </div>
             <div>
-              <label className="label">Statut</label>
-              <select className="select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                <option value="pending">En attente</option>
-                <option value="paid">Payé</option>
-              </select>
+              <label className="label">
+                Date d&apos;échéance
+                <span style={{ fontWeight: 400, color: '#a3a3a3', marginLeft: 4 }}>(optionnel)</span>
+              </label>
+              <input
+                type="date"
+                className="input"
+                value={form.dueDate || ''}
+                onChange={(e) => setForm({ ...form, dueDate: e.target.value || undefined })}
+              />
             </div>
+          </div>
+          <div>
+            <label className="label">Statut</label>
+            <select className="select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <option value="pending">En attente</option>
+              <option value="paid">Payé</option>
+            </select>
           </div>
           <div>
             <label className="label">Client</label>

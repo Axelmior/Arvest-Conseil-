@@ -14,6 +14,7 @@ const HEADER_MAP = {
   type:        ['type', 'type charge'],
   credit:      ['crédit', 'credit', 'encaissement', 'montant credit', 'montant crédit', 'avoir'],
   debit:       ['débit', 'debit', 'decaissement', 'décaissement', 'montant debit', 'montant débit'],
+  dueDate:     ['echeance', 'date echeance', 'date limite', 'due date', 'due_date', 'date paiement', 'date de paiement', 'date reglement', 'date de reglement'],
 };
 
 function norm(str) {
@@ -142,7 +143,9 @@ export function parseRows(rawRows, importType) {
     const row = rawRows[i];
     if (!row || row.every((c) => c === '' || c === null)) continue;
 
-    const date = parseDate(get(row, cm.date));
+    const date    = parseDate(get(row, cm.date));
+    const rawDue  = get(row, cm.dueDate);
+    const dueDate = rawDue ? parseDate(rawDue) : '';
     const desc = String(get(row, cm.description)).trim();
     const cat  = String(get(row, cm.category) || '').trim();
 
@@ -155,14 +158,16 @@ export function parseRows(rawRows, importType) {
         const { ht, tva, ttc } = fillAmounts(0, 0, credit);
         outSales.push({
           date, client: label, description: label,
-          category: cat || 'Encaissement', ht, tva, ttc, status: 'paid'
+          category: cat || 'Encaissement', ht, tva, ttc, status: 'paid',
+          ...(dueDate ? { dueDate } : {}),
         });
       }
       if (debit > 0) {
         const { ht, tva, ttc } = fillAmounts(0, 0, debit);
         outExpenses.push({
           date, supplier: label, description: label,
-          category: cat || 'Virement', ht, tva, ttc, type: 'variable'
+          category: cat || 'Virement', ht, tva, ttc, type: 'variable',
+          ...(dueDate ? { dueDate } : {}),
         });
       }
     } else if (importType === 'sales') {
@@ -178,7 +183,8 @@ export function parseRows(rawRows, importType) {
         description: desc,
         category:    cat || 'Prestation',
         ht, tva, ttc,
-        status: inferStatus(get(row, cm.status))
+        status: inferStatus(get(row, cm.status)),
+        ...(dueDate ? { dueDate } : {}),
       });
     } else {
       // expenses
@@ -194,7 +200,8 @@ export function parseRows(rawRows, importType) {
         description: desc,
         category:    cat || 'Autre',
         ht, tva, ttc,
-        type: inferType(get(row, cm.type))
+        type: inferType(get(row, cm.type)),
+        ...(dueDate ? { dueDate } : {}),
       });
     }
   }
