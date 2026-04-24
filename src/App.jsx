@@ -3,19 +3,20 @@ import { useAuth } from './context/AuthContext';
 
 import ProtectedRoute from './components/ProtectedRoute';
 
-import LandingPage   from './pages/LandingPage';
-import LoginPage     from './pages/LoginPage';
-import SignupPage    from './pages/SignupPage';
-import PendingAccess from './pages/PendingAccess';
-import AdminPanel    from './pages/AdminPanel';
+import LandingPage    from './pages/LandingPage';
+import LoginPage      from './pages/LoginPage';
+import SignupPage     from './pages/SignupPage';
+import PendingAccess  from './pages/PendingAccess';
+import AdminPanel     from './pages/AdminPanel';
 import DashboardLayout from './pages/DashboardLayout';
-import Dashboard     from './pages/Dashboard';
-import Sales         from './pages/Sales';
-import Expenses      from './pages/Expenses';
-import Treasury      from './pages/Treasury';
-import Analytics     from './pages/Analytics';
-import Settings      from './pages/Settings';
-import NotFound      from './pages/NotFound';
+import Dashboard      from './pages/Dashboard';
+import Sales          from './pages/Sales';
+import Expenses       from './pages/Expenses';
+import Treasury       from './pages/Treasury';
+import Analytics      from './pages/Analytics';
+import Settings       from './pages/Settings';
+import NotFound       from './pages/NotFound';
+import { MentionsLegales, Confidentialite, Conditions, Contact } from './pages/LegalPages';
 
 function RedirectIfAuthenticated({ children }) {
   const { isAuthenticated, user, loading } = useAuth();
@@ -43,6 +44,12 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login"  element={<RedirectIfAuthenticated><LoginPage  /></RedirectIfAuthenticated>} />
       <Route path="/signup" element={<RedirectIfAuthenticated><SignupPage /></RedirectIfAuthenticated>} />
+
+      {/* Legal pages */}
+      <Route path="/mentions-legales" element={<MentionsLegales />} />
+      <Route path="/confidentialite"  element={<Confidentialite />} />
+      <Route path="/conditions"       element={<Conditions />} />
+      <Route path="/contact"          element={<Contact />} />
 
       {/* Pending activation */}
       <Route path="/pending" element={<PendingAccess />} />

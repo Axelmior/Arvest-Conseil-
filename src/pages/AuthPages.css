@@ -88,6 +88,52 @@
   color: #737373;
 }
 
+/* Left-panel product features (replaces testimonial) */
+.auth-side-features {
+  max-width: 400px;
+}
+
+.auth-side-features-title {
+  font-size: 22px;
+  font-weight: 300;
+  color: white;
+  line-height: 1.45;
+  margin-bottom: 28px;
+}
+
+.auth-side-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.auth-side-feature-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.auth-side-feature-desc {
+  font-size: 13px;
+  color: #a3a3a3;
+  line-height: 1.5;
+}
+
+/* OTP hint box */
+.auth-otp-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(198, 167, 94, 0.08);
+  border: 1px solid rgba(198, 167, 94, 0.25);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #525252;
+}
+
 /* Côté formulaire (droite) */
 .auth-form-side {
   flex: 1;

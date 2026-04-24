@@ -1,0 +1,260 @@
+.legal-page {
+  min-height: 100vh;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.legal-header {
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.legal-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.legal-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #737373;
+  transition: color 0.2s;
+}
+
+.legal-back:hover {
+  color: #171717;
+}
+
+/* ─── Main ───────────────────────────────────────────────────────────────── */
+.legal-main {
+  flex: 1;
+  padding: 56px 24px 80px;
+}
+
+.legal-title {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f0f0f;
+  margin-bottom: 40px;
+  line-height: 1.15;
+}
+
+@media (max-width: 640px) {
+  .legal-title {
+    font-size: 26px;
+  }
+}
+
+.legal-updated {
+  font-size: 13px;
+  color: #a3a3a3;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* ─── Content typography ─────────────────────────────────────────────────── */
+.legal-content {
+  max-width: 760px;
+}
+
+.legal-content h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #171717;
+  margin-top: 36px;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.legal-content p {
+  font-size: 15px;
+  color: #404040;
+  line-height: 1.75;
+  margin-bottom: 16px;
+}
+
+.legal-content ul {
+  margin: 0 0 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legal-content li {
+  font-size: 15px;
+  color: #404040;
+  line-height: 1.6;
+}
+
+.legal-content strong {
+  color: #171717;
+  font-weight: 600;
+}
+
+.legal-content em {
+  color: #525252;
+}
+
+/* ─── Contact layout ─────────────────────────────────────────────────────── */
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+}
+
+@media (min-width: 768px) {
+  .contact-layout {
+    grid-template-columns: 1fr 1.4fr;
+    gap: 56px;
+  }
+}
+
+.contact-info-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.contact-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.contact-info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(198, 167, 94, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-info-label {
+  font-size: 12px;
+  color: #a3a3a3;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.contact-info-value {
+  font-size: 14px;
+  color: #171717;
+  font-weight: 500;
+}
+
+a.contact-info-value:hover {
+  color: #C6A75E;
+}
+
+/* ─── Contact form ───────────────────────────────────────────────────────── */
+.contact-form-wrap {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.contact-form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 480px) {
+  .contact-form-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.contact-sent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 40px 16px;
+}
+
+.contact-sent h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #171717;
+}
+
+.contact-sent p {
+  font-size: 14px;
+  color: #525252;
+  line-height: 1.6;
+}
+
+.label-req {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+.legal-footer {
+  background: white;
+  border-top: 1px solid #e5e5e5;
+  padding: 32px 0;
+}
+
+.legal-footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .legal-footer-inner {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.legal-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 13px;
+  color: #737373;
+  justify-content: center;
+}
+
+.legal-footer-links a:hover {
+  color: #171717;
+}
+
+.legal-footer-copy {
+  font-size: 13px;
+  color: #a3a3a3;
+}

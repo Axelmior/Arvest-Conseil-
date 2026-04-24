@@ -1,37 +1,26 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-// ─── Admin configuration ──────────────────────────────────────────────────────
+// ─── Admin ────────────────────────────────────────────────────────────────────
 const ADMIN_EMAIL = 'axelmiorcec29590@gmail.com';
 const isAdminEmail = (email) => email.toLowerCase() === ADMIN_EMAIL;
 
-// ─── Users registry (localStorage) ──────────────────────────────────────────
+// ─── Registry ─────────────────────────────────────────────────────────────────
 const REGISTRY_KEY = 'arvest_users_registry';
 
 function loadRegistry() {
-  try {
-    const raw = localStorage.getItem(REGISTRY_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(REGISTRY_KEY) || '[]'); }
+  catch { return []; }
 }
 
 function saveRegistry(users) {
-  try {
-    localStorage.setItem(REGISTRY_KEY, JSON.stringify(users));
-  } catch (e) {
-    console.warn('Registry save failed', e);
-  }
+  try { localStorage.setItem(REGISTRY_KEY, JSON.stringify(users)); }
+  catch (e) { console.warn('Registry save failed', e); }
 }
 
 function findInRegistry(email) {
   return loadRegistry().find((u) => u.email === email.toLowerCase()) || null;
 }
 
-/**
- * Insert or update a user entry in the registry.
- * Returns the full updated entry.
- */
 function upsertRegistry(patch) {
   const reg = loadRegistry();
   const idx = reg.findIndex((u) => u.email === patch.email.toLowerCase());
@@ -49,7 +38,7 @@ function buildEntry(email, name, company) {
   const admin = isAdminEmail(email);
   return {
     email:        email.toLowerCase(),
-    name:         name  || email.split('@')[0],
+    name:         name || email.split('@')[0],
     company:      company || 'Mon entreprise',
     phone:        '',
     fonction:     '',
@@ -58,37 +47,84 @@ function buildEntry(email, name, company) {
     isAuthorized: admin,
     createdAt:    new Date().toISOString(),
     requestedAt:  null,
+    passwordHash: '',
   };
 }
 
-// ─── Session (sessionStorage keeps the current browser tab's user) ────────────
+// ─── Password (simple deterministic hash — demo only, not cryptographic) ──────
+function hashPassword(pw) {
+  let h = 5381;
+  for (let i = 0; i < pw.length; i++) { h = ((h << 5) + h) + pw.charCodeAt(i); h |= 0; }
+  return String(h >>> 0);
+}
+
+// ─── Device sessions ──────────────────────────────────────────────────────────
+const CURRENT_SESSION_KEY = 'arvest_current_session_id';
+
+function devicesKey(email) { return `arvest_devices_${email.toLowerCase()}`; }
+
+function loadDevices(email) {
+  try { return JSON.parse(localStorage.getItem(devicesKey(email)) || '[]'); }
+  catch { return []; }
+}
+
+function saveDevices(email, list) {
+  try { localStorage.setItem(devicesKey(email), JSON.stringify(list)); }
+  catch {}
+}
+
+function detectDevice() {
+  const ua = navigator.userAgent;
+  let browser = 'Navigateur';
+  let os = 'Inconnu';
+  if (/Edg/.test(ua)) browser = 'Edge';
+  else if (/Firefox/.test(ua)) browser = 'Firefox';
+  else if (/Chrome/.test(ua)) browser = 'Chrome';
+  else if (/Safari/.test(ua)) browser = 'Safari';
+  if (/iPhone|iPad/.test(ua)) os = 'iOS';
+  else if (/Android/.test(ua)) os = 'Android';
+  else if (/Windows/.test(ua)) os = 'Windows';
+  else if (/Mac/.test(ua)) os = 'macOS';
+  else if (/Linux/.test(ua)) os = 'Linux';
+  return `${browser} · ${os}`;
+}
+
+function registerDeviceSession(email) {
+  const id = `s_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const list = loadDevices(email).map((d) => ({ ...d, current: false }));
+  list.unshift({
+    id,
+    device:   detectDevice(),
+    location: 'France (approximatif)',
+    lastSeen: new Date().toISOString(),
+    current:  true,
+  });
+  saveDevices(email, list.slice(0, 5));
+  sessionStorage.setItem(CURRENT_SESSION_KEY, id);
+}
+
+// ─── Session ──────────────────────────────────────────────────────────────────
 const SESSION_KEY = 'arvest_session';
 
 function loadSession() {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); }
+  catch { return null; }
 }
 
 function saveSession(user) {
   try {
     if (user) sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    else       sessionStorage.removeItem(SESSION_KEY);
+    else sessionStorage.removeItem(SESSION_KEY);
   } catch {}
 }
 
-// ─── Context ─────────────────────────────────────────────────────────────────
+// ─── Context ──────────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user,    setUser]    = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount: restore session, but always re-read isAuthorized / role from
-  // the registry so admin activation takes effect immediately.
   useEffect(() => {
     const session = loadSession();
     if (session?.email) {
@@ -104,8 +140,6 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  // Re-reads the registry and refreshes current user's auth state.
-  // Returns the fresh user object so callers can act on the new state.
   const refreshAuth = useCallback(() => {
     if (!user?.email) return null;
     const entry = findInRegistry(user.email);
@@ -116,37 +150,42 @@ export function AuthProvider({ children }) {
     return fresh;
   }, [user]);
 
-  const signup = async ({ email, name, company }) => {
-    const existing = findInRegistry(email);
-    if (existing) {
-      setUser(existing);
-      saveSession(existing);
-      return existing;
-    }
-    const entry = buildEntry(email, name, company);
-    upsertRegistry(entry);
+  const completeLogin = useCallback((entry) => {
+    registerDeviceSession(entry.email);
     setUser(entry);
     saveSession(entry);
+  }, []);
+
+  // ── Signup ────────────────────────────────────────────────────────────────
+  const signup = async ({ email, name, company, password }) => {
+    const existing = findInRegistry(email);
+    if (existing) { completeLogin(existing); return existing; }
+    const entry = buildEntry(email, name, company);
+    if (password) entry.passwordHash = hashPassword(password);
+    upsertRegistry(entry);
+    completeLogin(entry);
     return entry;
   };
 
-  const login = async ({ email }) => {
+  // ── Login ─────────────────────────────────────────────────────────────────
+  const login = async ({ email, password }) => {
     let entry = findInRegistry(email);
     if (!entry) {
       entry = buildEntry(email, '', '');
+      if (password) entry.passwordHash = hashPassword(password);
       upsertRegistry(entry);
     }
-    setUser(entry);
-    saveSession(entry);
+    if (entry.passwordHash && password && hashPassword(password) !== entry.passwordHash) {
+      throw new Error('Mot de passe incorrect.');
+    }
+    completeLogin(entry);
     return entry;
   };
 
-  const logout = () => {
-    setUser(null);
-    saveSession(null);
-  };
+  // ── Logout ────────────────────────────────────────────────────────────────
+  const logout = () => { setUser(null); saveSession(null); };
 
-  // Marks requestedAt on the current user's registry entry.
+  // ── Request access ────────────────────────────────────────────────────────
   const requestAccess = useCallback(() => {
     if (!user?.email) return;
     const ts = new Date().toISOString();
@@ -156,23 +195,43 @@ export function AuthProvider({ children }) {
     saveSession(fresh);
   }, [user]);
 
-  // ── Admin-only functions ─────────────────────────────────────────────────
-  const getAllUsers = useCallback(
-    () => loadRegistry().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-    []
-  );
+  // ── Change password ───────────────────────────────────────────────────────
+  const changePassword = useCallback((oldPassword, newPassword) => {
+    if (!user?.email) throw new Error('Non connecté.');
+    const entry = findInRegistry(user.email);
+    if (entry?.passwordHash && hashPassword(oldPassword) !== entry.passwordHash) {
+      throw new Error('Ancien mot de passe incorrect.');
+    }
+    if (newPassword.length < 8) throw new Error('8 caractères minimum.');
+    const newHash = hashPassword(newPassword);
+    upsertRegistry({ email: user.email, passwordHash: newHash });
+    const fresh = { ...user, passwordHash: newHash };
+    setUser(fresh);
+    saveSession(fresh);
+  }, [user]);
 
-  const authorizeUser = useCallback((email) => {
-    upsertRegistry({ email: email.toLowerCase(), isAuthorized: true });
-  }, []);
+  // ── Devices ───────────────────────────────────────────────────────────────
+  const getDevices = useCallback(() => {
+    if (!user?.email) return [];
+    return loadDevices(user.email);
+  }, [user]);
 
-  const blockUser = useCallback((email) => {
-    upsertRegistry({ email: email.toLowerCase(), isAuthorized: false });
-  }, []);
+  const revokeDevice = useCallback((deviceId) => {
+    if (!user?.email) return;
+    saveDevices(user.email, loadDevices(user.email).filter((d) => d.id !== deviceId));
+  }, [user]);
 
-  const deleteUser = useCallback((email) => {
-    saveRegistry(loadRegistry().filter((u) => u.email !== email.toLowerCase()));
-  }, []);
+  const revokeAllDevices = useCallback(() => {
+    if (!user?.email) return;
+    const currentId = sessionStorage.getItem(CURRENT_SESSION_KEY);
+    saveDevices(user.email, loadDevices(user.email).filter((d) => d.id === currentId));
+  }, [user]);
+
+  // ── Admin ─────────────────────────────────────────────────────────────────
+  const getAllUsers   = useCallback(() => loadRegistry().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)), []);
+  const authorizeUser = useCallback((email) => upsertRegistry({ email: email.toLowerCase(), isAuthorized: true  }), []);
+  const blockUser     = useCallback((email) => upsertRegistry({ email: email.toLowerCase(), isAuthorized: false }), []);
+  const deleteUser    = useCallback((email) => saveRegistry(loadRegistry().filter((u) => u.email !== email.toLowerCase())), []);
 
   const updateProfile = useCallback((patch) => {
     if (!user?.email) return;
@@ -196,6 +255,10 @@ export function AuthProvider({ children }) {
       logout,
       refreshAuth,
       requestAccess,
+      changePassword,
+      getDevices,
+      revokeDevice,
+      revokeAllDevices,
       getAllUsers,
       authorizeUser,
       blockUser,
@@ -213,12 +276,12 @@ export function useAuth() {
   return ctx;
 }
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
 function mergeSession(session, entry) {
   return {
     ...session,
     isAuthorized: entry.isAuthorized,
     isAdmin:      entry.isAdmin,
     role:         entry.role,
+    passwordHash: entry.passwordHash,
   };
 }
