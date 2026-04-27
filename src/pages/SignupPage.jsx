@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Building2, ArrowLeft } from 'lucide-react';
 import Logo from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
+import { sendWelcomeEmail } from '../utils/emailService';
 import './AuthPages.css';
 
 export default function SignupPage() {
@@ -35,12 +36,14 @@ export default function SignupPage() {
 
     setSubmitting(true);
     try {
-      await signup({
+      const newUser = await signup({
         email: form.email,
         name: form.name || form.email.split('@')[0],
-        company: form.company || 'Mon entreprise'
+        company: form.company || 'Mon entreprise',
+        password: form.password,
       });
-      navigate('/dashboard', { replace: true });
+      sendWelcomeEmail(newUser).catch(() => {});
+      navigate(newUser.isAuthorized ? '/dashboard' : '/pending', { replace: true });
     } catch (err) {
       setError("Impossible de créer votre compte. Veuillez réessayer.");
       console.error(err);
@@ -65,7 +68,7 @@ export default function SignupPage() {
               indicateurs précis et une vision en temps réel.
             </p>
             <div className="auth-quote-author" style={{ marginTop: 24 }}>
-              <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>Essai gratuit · Sans engagement</div>
+              <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>Accès sur invitation · 49 € / mois HT</div>
             </div>
           </div>
           <div className="auth-side-footer">© 2026 Arvest Pilot</div>
@@ -84,7 +87,7 @@ export default function SignupPage() {
           </Link>
 
           <h1 className="auth-title">Créez votre compte</h1>
-          <p className="auth-subtitle">Commencez votre essai en moins de 2 minutes.</p>
+          <p className="auth-subtitle">Accès sur validation · Réponse sous 24h.</p>
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-form-row">

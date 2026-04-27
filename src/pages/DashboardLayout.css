@@ -12,26 +12,35 @@
 .dashboard-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 16px;
+  padding-bottom: calc(16px + 64px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 768px) {
   .dashboard-content {
     padding: 32px;
+    padding-bottom: 32px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .dashboard-content {
+    padding-bottom: 32px;
   }
 }
 
 /* Grilles dashboard */
 .dash-kpis {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 @media (min-width: 640px) {
   .dash-kpis {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
   }
 }
 
@@ -41,11 +50,27 @@
   }
 }
 
+/* Chart height helpers — responsive */
+.chart-h-lg { height: 280px; }
+.chart-h-sm { height: 220px; }
+
+@media (max-width: 640px) {
+  .chart-h-lg { height: 200px; }
+  .chart-h-sm { height: 170px; }
+}
+
 .dash-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .dash-row {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
 }
 
 @media (min-width: 1024px) {

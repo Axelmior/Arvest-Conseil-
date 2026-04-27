@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useData } from './DataContext';
 import { useAuth } from './AuthContext';
 import { formatEuro, formatDate } from '../utils/format';
+import { sendAlertEmail } from '../utils/emailService';
 
 const NotifContext = createContext(null);
 
@@ -111,6 +112,19 @@ export function NotificationProvider({ children }) {
 
     return list;
   }, [sales, expenses, kpis, treasury, futureFlows]);
+
+  // Trigger alert emails for new danger/warning notifications (after 8s debounce)
+  const emailTimerRef = useRef(null);
+  useEffect(() => {
+    if (!user?.email || !user?.isAuthorized) return;
+    const alertable = notifications.filter(n => n.type === 'danger' || n.type === 'warning');
+    if (!alertable.length) return;
+    clearTimeout(emailTimerRef.current);
+    emailTimerRef.current = setTimeout(() => {
+      alertable.forEach(n => { sendAlertEmail(user, n).catch(() => {}); });
+    }, 8000);
+    return () => clearTimeout(emailTimerRef.current);
+  }, [notifications, user?.email]);
 
   const markRead = useCallback((id) => {
     setReadIds((prev) => {

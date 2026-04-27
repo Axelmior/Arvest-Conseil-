@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
-const ADMIN_EMAIL = 'axelmiorcec29590@gmail.com';
+const ADMIN_EMAIL = 'arvest-conseil@outlook.com';
 const isAdminEmail = (email) => email.toLowerCase() === ADMIN_EMAIL;
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
@@ -233,6 +233,25 @@ export function AuthProvider({ children }) {
   const blockUser     = useCallback((email) => upsertRegistry({ email: email.toLowerCase(), isAuthorized: false }), []);
   const deleteUser    = useCallback((email) => saveRegistry(loadRegistry().filter((u) => u.email !== email.toLowerCase())), []);
 
+  // ── Password reset ────────────────────────────────────────────────────────
+  const generateResetToken = useCallback((email) => {
+    const entry = findInRegistry(email);
+    const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const expiry = Date.now() + 3_600_000; // 1 hour
+    localStorage.setItem(`arvest_reset_${email.toLowerCase()}`, JSON.stringify({ token, expiry }));
+    return { token, name: entry?.name || '' };
+  }, []);
+
+  const resetPassword = useCallback((token, email, newPassword) => {
+    const raw = localStorage.getItem(`arvest_reset_${email.toLowerCase()}`);
+    if (!raw) throw new Error('Lien invalide ou expiré.');
+    const { token: stored, expiry } = JSON.parse(raw);
+    if (stored !== token || Date.now() > expiry) throw new Error('Lien invalide ou expiré.');
+    if (newPassword.length < 8) throw new Error('8 caractères minimum.');
+    upsertRegistry({ email: email.toLowerCase(), passwordHash: hashPassword(newPassword) });
+    localStorage.removeItem(`arvest_reset_${email.toLowerCase()}`);
+  }, []);
+
   const updateProfile = useCallback((patch) => {
     if (!user?.email) return;
     const allowed = {};
@@ -264,6 +283,8 @@ export function AuthProvider({ children }) {
       blockUser,
       deleteUser,
       updateProfile,
+      generateResetToken,
+      resetPassword,
     }}>
       {children}
     </AuthContext.Provider>

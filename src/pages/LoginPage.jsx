@@ -90,7 +90,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="label">Mot de passe</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label className="label" style={{ margin: 0 }}>Mot de passe</label>
+                <Link to="/forgot-password" style={{ fontSize: 12, color: '#C6A75E', textDecoration: 'none' }}>
+                  Mot de passe oublié ?
+                </Link>
+              </div>
               <div className="input-icon-wrapper">
                 <Lock size={16} className="icon" />
                 <input

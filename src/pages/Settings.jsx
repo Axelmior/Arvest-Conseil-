@@ -2,18 +2,21 @@ import { useState, useCallback } from 'react';
 import {
   FileSpreadsheet, FileText, Upload, Download,
   Eye, EyeOff, Monitor, Smartphone, Laptop, Trash2, LogOut,
+  Bell, BellOff,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useCompany, EMPTY_COMPANY } from '../context/CompanyContext';
 import ImportModal from '../components/ImportModal';
 import { formatDate } from '../utils/format';
+import { loadEmailPrefs, saveEmailPrefs } from '../utils/emailService';
 
 const TABS = [
-  { id: 'profile',  label: 'Profil' },
-  { id: 'company',  label: 'Entreprise' },
-  { id: 'imports',  label: 'Imports / Exports' },
-  { id: 'security', label: 'Sécurité' },
+  { id: 'profile',       label: 'Profil' },
+  { id: 'company',       label: 'Entreprise' },
+  { id: 'imports',       label: 'Imports / Exports' },
+  { id: 'notifications', label: 'Notifications' },
+  { id: 'security',      label: 'Sécurité' },
 ];
 
 // ─── Password strength ────────────────────────────────────────────────────────
@@ -59,6 +62,135 @@ function DeviceIcon({ device }) {
   if (/iOS|Android/.test(device)) return <Smartphone size={16} color="#737373" />;
   if (/Windows|macOS|Linux/.test(device)) return <Laptop size={16} color="#737373" />;
   return <Monitor size={16} color="#737373" />;
+}
+
+// ─── Notifications tab ────────────────────────────────────────────────────────
+function NotificationsTab() {
+  const { user } = useAuth();
+  const [prefs, setPrefs] = useState(() => loadEmailPrefs(user?.email || ''));
+  const [saved, setSaved] = useState(false);
+
+  const update = (key, value) => setPrefs((p) => ({ ...p, [key]: value }));
+
+  const handleSave = () => {
+    saveEmailPrefs(user.email, prefs);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const toggle = (key) => update(key, !prefs[key]);
+
+  const switchStyle = (on) => ({
+    display: 'inline-flex', alignItems: 'center', cursor: 'pointer',
+    width: 42, height: 24, borderRadius: 12,
+    background: on ? '#C6A75E' : '#d1d5db',
+    padding: 2, transition: 'background 0.2s', flexShrink: 0,
+  });
+  const knobStyle = (on) => ({
+    width: 20, height: 20, borderRadius: '50%', background: '#fff',
+    transform: on ? 'translateX(18px)' : 'translateX(0)',
+    transition: 'transform 0.2s',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+  });
+
+  const Row = ({ label, desc, checked, onToggle }) => (
+    <div style={{
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16,
+      padding: '16px 0', borderBottom: '1px solid #f5f5f5',
+    }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, color: '#171717', marginBottom: 2 }}>{label}</div>
+        <div style={{ fontSize: 13, color: '#737373', lineHeight: 1.5 }}>{desc}</div>
+      </div>
+      <div onClick={onToggle} style={switchStyle(checked)} role="switch" aria-checked={checked}>
+        <div style={knobStyle(checked)} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 600 }}>
+      <h3 style={{ fontSize: 18, fontWeight: 600, color: '#171717', marginBottom: 4 }}>Préférences email</h3>
+      <p style={{ fontSize: 14, color: '#737373', marginBottom: 24 }}>
+        Gérez les emails automatiques que vous souhaitez recevoir d&apos;Arvest Pilot.
+      </p>
+
+      <div style={{ background: '#fafaf9', border: '1px solid #e5e5e5', borderRadius: 12, padding: '0 20px', marginBottom: 24 }}>
+        <Row
+          label="Alertes financières"
+          desc="Recevez un email lors d'alertes importantes : trésorerie faible, charges élevées, factures impayées, marge en baisse…"
+          checked={prefs.alertsEnabled}
+          onToggle={() => toggle('alertsEnabled')}
+        />
+        <Row
+          label="Rappels d'inactivité"
+          desc="Recevez un rappel si vous ne consultez pas votre tableau de bord depuis un certain temps."
+          checked={prefs.inactivityEnabled}
+          onToggle={() => toggle('inactivityEnabled')}
+        />
+      </div>
+
+      {prefs.alertsEnabled && (
+        <div style={{ marginBottom: 24 }}>
+          <label className="label" style={{ marginBottom: 8 }}>Fréquence des alertes</label>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {[
+              { value: 'immediate', label: 'Immédiat',    desc: 'Dès qu\'une alerte est détectée' },
+              { value: 'daily',     label: 'Quotidien',   desc: 'Maximum 1 email par jour' },
+              { value: 'weekly',    label: 'Hebdomadaire', desc: 'Maximum 1 email par semaine' },
+            ].map(({ value, label, desc }) => (
+              <div
+                key={value}
+                onClick={() => update('frequency', value)}
+                style={{
+                  flex: '1 1 140px', padding: '12px 16px', borderRadius: 10, cursor: 'pointer',
+                  border: `2px solid ${prefs.frequency === value ? '#C6A75E' : '#e5e5e5'}`,
+                  background: prefs.frequency === value ? 'rgba(198,167,94,0.05)' : '#fff',
+                  transition: 'border-color 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <div style={{
+                    width: 14, height: 14, borderRadius: '50%',
+                    border: `2px solid ${prefs.frequency === value ? '#C6A75E' : '#d1d5db'}`,
+                    background: prefs.frequency === value ? '#C6A75E' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    {prefs.frequency === value && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />}
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#171717' }}>{label}</span>
+                </div>
+                <p style={{ margin: 0, fontSize: 12, color: '#737373' }}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{
+        padding: '14px 16px', marginBottom: 24,
+        background: !prefs.alertsEnabled && !prefs.inactivityEnabled ? '#fef2f2' : 'rgba(198,167,94,0.05)',
+        border: `1px solid ${!prefs.alertsEnabled && !prefs.inactivityEnabled ? '#fca5a5' : 'rgba(198,167,94,0.2)'}`,
+        borderRadius: 10, display: 'flex', gap: 10, alignItems: 'flex-start',
+      }}>
+        {!prefs.alertsEnabled && !prefs.inactivityEnabled
+          ? <BellOff size={15} color="#b91c1c" style={{ flexShrink: 0, marginTop: 1 }} />
+          : <Bell size={15} color="#8B7235" style={{ flexShrink: 0, marginTop: 1 }} />
+        }
+        <p style={{ margin: 0, fontSize: 13, color: !prefs.alertsEnabled && !prefs.inactivityEnabled ? '#b91c1c' : '#737373', lineHeight: 1.6 }}>
+          {!prefs.alertsEnabled && !prefs.inactivityEnabled
+            ? 'Tous les emails sont désactivés. Vous ne serez plus alerté des situations critiques.'
+            : 'Les emails transactionnels (bienvenue, accès activé, réinitialisation mot de passe) sont toujours envoyés.'
+          }
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, alignItems: 'center' }}>
+        {saved && <span style={{ fontSize: 13, color: '#059669' }}>Préférences enregistrées ✓</span>}
+        <button className="btn btn-primary" onClick={handleSave}>Enregistrer</button>
+      </div>
+    </div>
+  );
 }
 
 // ─── Security tab ─────────────────────────────────────────────────────────────
@@ -397,6 +529,8 @@ export default function Settings() {
             onImport={(parsed) => { importAll(parsed); setImportModal(null); }}
           />
         )}
+
+        {tab === 'notifications' && <NotificationsTab />}
 
         {tab === 'security' && <SecurityTab />}
 

@@ -68,7 +68,7 @@ export default function Dashboard() {
               <div className="legend-dot"><span style={{ background: '#a3a3a3' }} /> Charges</div>
             </div>
           </div>
-          <div style={{ height: 280 }}>
+          <div className="chart-h-lg">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={MONTHLY_DATA} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                 <defs>
@@ -185,7 +185,7 @@ export default function Dashboard() {
               <div style={{ fontSize: 18, fontWeight: 600, color: '#171717' }}>{formatEuro(treasury.solde)}</div>
             </div>
           </div>
-          <div style={{ height: 220 }}>
+          <div className="chart-h-sm">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={CASH_EVOLUTION} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />

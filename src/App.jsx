@@ -3,11 +3,13 @@ import { useAuth } from './context/AuthContext';
 
 import ProtectedRoute from './components/ProtectedRoute';
 
-import LandingPage    from './pages/LandingPage';
-import LoginPage      from './pages/LoginPage';
-import SignupPage     from './pages/SignupPage';
-import PendingAccess  from './pages/PendingAccess';
-import AdminPanel     from './pages/AdminPanel';
+import LandingPage     from './pages/LandingPage';
+import LoginPage       from './pages/LoginPage';
+import SignupPage      from './pages/SignupPage';
+import ForgotPassword  from './pages/ForgotPassword';
+import ResetPassword   from './pages/ResetPassword';
+import PendingAccess   from './pages/PendingAccess';
+import AdminPanel      from './pages/AdminPanel';
 import DashboardLayout from './pages/DashboardLayout';
 import Dashboard      from './pages/Dashboard';
 import Sales          from './pages/Sales';
@@ -42,8 +44,10 @@ export default function App() {
     <Routes>
       {/* Public */}
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login"  element={<RedirectIfAuthenticated><LoginPage  /></RedirectIfAuthenticated>} />
-      <Route path="/signup" element={<RedirectIfAuthenticated><SignupPage /></RedirectIfAuthenticated>} />
+      <Route path="/login"           element={<RedirectIfAuthenticated><LoginPage       /></RedirectIfAuthenticated>} />
+      <Route path="/signup"          element={<RedirectIfAuthenticated><SignupPage      /></RedirectIfAuthenticated>} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password"  element={<ResetPassword  />} />
 
       {/* Legal pages */}
       <Route path="/mentions-legales" element={<MentionsLegales />} />

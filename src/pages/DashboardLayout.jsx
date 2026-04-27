@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
+import BottomNav from '../components/BottomNav';
 import { DataProvider } from '../context/DataContext';
 import { CompanyProvider } from '../context/CompanyContext';
 import { NotificationProvider } from '../context/NotificationContext';
@@ -38,6 +39,7 @@ export default function DashboardLayout() {
                 <Outlet />
               </div>
             </main>
+            <BottomNav />
           </div>
         </NotificationProvider>
       </CompanyProvider>
