@@ -3,6 +3,7 @@ import { Search, Plus, Upload, Edit2, Trash2, ChevronDown, X } from 'lucide-reac
 import { formatEuro, formatEuroDecimal, formatDate } from '../utils/format';
 import { useData } from '../context/DataContext';
 import ImportModal from '../components/ImportModal';
+import ConfirmModal from '../components/ConfirmModal';
 
 function ExpenseModal({ expense, onClose, onSave }) {
   const [form, setForm] = useState(
@@ -40,7 +41,7 @@ function ExpenseModal({ expense, onClose, onSave }) {
           </button>
         </div>
         <div className="modal-body">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="grid grid-2-mobile" style={{ gap: 12 }}>
             <div>
               <label className="label">Date</label>
               <input type="date" className="input" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
@@ -88,18 +89,20 @@ function ExpenseModal({ expense, onClose, onSave }) {
             <label className="label">Description</label>
             <input className="input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <div className="amounts-grid">
             <div>
-              <label className="label">HT</label>
-              <input type="number" step="0.01" className="input" value={form.ht} onChange={(e) => handleHT(e.target.value)} />
+              <label className="label">Montant HT</label>
+              <input type="number" step="0.01" min="0" className="input" value={form.ht} onChange={(e) => handleHT(e.target.value)} placeholder="0,00" />
             </div>
             <div>
-              <label className="label">TVA</label>
+              <label className="label">TVA (20 %)</label>
               <input
                 type="number"
                 step="0.01"
+                min="0"
                 className="input"
                 value={form.tva}
+                placeholder="0,00"
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -110,8 +113,8 @@ function ExpenseModal({ expense, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="label">TTC</label>
-              <input type="number" className="input" value={form.ttc} readOnly style={{ background: '#fafafa', fontWeight: 600 }} />
+              <label className="label">Total TTC</label>
+              <input type="number" className="input" value={form.ttc} readOnly style={{ background: '#f5f5f5', fontWeight: 600 }} />
             </div>
           </div>
         </div>
@@ -133,6 +136,7 @@ export default function Expenses() {
   const [sortDir, setSortDir] = useState('desc');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const filtered = useMemo(() => {
     let r = [...expenses];
@@ -165,8 +169,11 @@ export default function Expenses() {
     }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Supprimer cette charge ?')) setExpenses(expenses.filter((s) => s.id !== id));
+  const handleDelete = (id) => setConfirmDeleteId(id);
+
+  const doDelete = () => {
+    setExpenses(expenses.filter((s) => s.id !== confirmDeleteId));
+    setConfirmDeleteId(null);
   };
 
   const handleSave = (data) => {
@@ -297,6 +304,15 @@ export default function Expenses() {
           defaultType="expenses"
           onClose={() => setShowImport(false)}
           onImport={(parsed) => { importAll(parsed); setShowImport(false); }}
+        />
+      )}
+      {confirmDeleteId && (
+        <ConfirmModal
+          title="Supprimer la charge ?"
+          message="Cette action est irréversible. La charge sera définitivement supprimée et les KPI recalculés."
+          onConfirm={doDelete}
+          onCancel={() => setConfirmDeleteId(null)}
+          confirmLabel="Supprimer"
         />
       )}
     </>

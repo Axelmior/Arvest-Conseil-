@@ -13,6 +13,7 @@ import {
 import { formatEuro, formatEuroDecimal, formatDate } from '../utils/format';
 import { useData } from '../context/DataContext';
 import ImportModal from '../components/ImportModal';
+import ConfirmModal from '../components/ConfirmModal';
 
 function SaleModal({ sale, onClose, onSave }) {
   const [form, setForm] = useState(
@@ -92,18 +93,20 @@ function SaleModal({ sale, onClose, onSave }) {
             <label className="label">Description</label>
             <input className="input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Objet de la vente" />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <div className="amounts-grid">
             <div>
               <label className="label">Montant HT</label>
-              <input type="number" step="0.01" className="input" value={form.ht} onChange={(e) => handleHT(e.target.value)} />
+              <input type="number" step="0.01" min="0" className="input" value={form.ht} onChange={(e) => handleHT(e.target.value)} placeholder="0,00" />
             </div>
             <div>
-              <label className="label">TVA</label>
+              <label className="label">TVA (20 %)</label>
               <input
                 type="number"
                 step="0.01"
+                min="0"
                 className="input"
                 value={form.tva}
+                placeholder="0,00"
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -114,8 +117,8 @@ function SaleModal({ sale, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="label">TTC</label>
-              <input type="number" className="input" value={form.ttc} readOnly style={{ background: '#fafafa', fontWeight: 600 }} />
+              <label className="label">Total TTC</label>
+              <input type="number" className="input" value={form.ttc} readOnly style={{ background: '#f5f5f5', fontWeight: 600 }} />
             </div>
           </div>
         </div>
@@ -137,6 +140,7 @@ export default function Sales() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const filtered = useMemo(() => {
     let r = [...sales];
@@ -169,8 +173,11 @@ export default function Sales() {
     }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Supprimer cette vente ?')) setSales(sales.filter((s) => s.id !== id));
+  const handleDelete = (id) => setConfirmDeleteId(id);
+
+  const doDelete = () => {
+    setSales(sales.filter((s) => s.id !== confirmDeleteId));
+    setConfirmDeleteId(null);
   };
 
   const handleSave = (data) => {
@@ -312,6 +319,15 @@ export default function Sales() {
           defaultType="sales"
           onClose={() => setShowImport(false)}
           onImport={(parsed) => { importAll(parsed); setShowImport(false); }}
+        />
+      )}
+      {confirmDeleteId && (
+        <ConfirmModal
+          title="Supprimer la vente ?"
+          message="Cette action est irréversible. La vente sera définitivement supprimée et les KPI recalculés."
+          onConfirm={doDelete}
+          onCancel={() => setConfirmDeleteId(null)}
+          confirmLabel="Supprimer"
         />
       )}
     </>

@@ -656,11 +656,20 @@
   text-transform: uppercase;
 }
 
+.landing-pricing-from {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #737373;
+  margin-bottom: 4px;
+}
+
 .landing-pricing-price {
-  font-size: 56px;
+  font-size: 46px;
   font-weight: 800;
   color: #0f0f0f;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   line-height: 1;
   margin-bottom: 6px;
 }

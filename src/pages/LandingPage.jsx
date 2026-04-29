@@ -113,7 +113,7 @@ function RequestModal({ onClose }) {
           <button type="button" onClick={onClose} className="modal-close"><X size={18} /></button>
         </div>
         <p style={{ fontSize: 14, color: '#525252', marginBottom: 20, lineHeight: 1.6 }}>
-          Arvest Pilot est accessible sur invitation uniquement à <strong>49 € / mois</strong>.
+          Arvest Pilot est accessible sur invitation uniquement à partir de <strong>19,99 € / mois</strong>.
           Laissez vos coordonnées et nous vous activerons manuellement.
         </p>
         <div className="modal-body">
@@ -339,8 +339,9 @@ export default function LandingPage() {
                 </div>
               </div>
 
+              <div className="landing-pricing-from">À partir de</div>
               <div className="landing-pricing-price">
-                49 <span className="landing-pricing-unit">€ / mois</span>
+                19,99 <span className="landing-pricing-unit">€ / mois</span>
               </div>
               <div style={{ fontSize: 13, color: '#737373', marginBottom: 32 }}>
                 HT · sans engagement · accès personnel
