@@ -8,11 +8,11 @@ import {
   ChevronDown,
   CheckCircle2,
   Clock,
-  X
+  X,
 } from 'lucide-react';
 import { formatEuro, formatEuroDecimal, formatDate } from '../utils/format';
 import { useData } from '../context/DataContext';
-import ImportModal from '../components/ImportModal';
+import UniversalImportModal from '../components/UniversalImportModal';
 import ConfirmModal from '../components/ConfirmModal';
 
 function SaleModal({ sale, onClose, onSave }) {
@@ -132,7 +132,7 @@ function SaleModal({ sale, onClose, onSave }) {
 }
 
 export default function Sales() {
-  const { sales, setSales, importAll } = useData();
+  const { sales, setSales } = useData();
   const [search, setSearch] = useState('');
   const [showImport, setShowImport] = useState(false);
   const [sortBy, setSortBy] = useState('date');
@@ -315,10 +315,9 @@ export default function Sales() {
 
       {showModal && <SaleModal sale={editing} onClose={() => { setShowModal(false); setEditing(null); }} onSave={handleSave} />}
       {showImport && (
-        <ImportModal
-          defaultType="sales"
+        <UniversalImportModal
+          defaultType="sale"
           onClose={() => setShowImport(false)}
-          onImport={(parsed) => { importAll(parsed); setShowImport(false); }}
         />
       )}
       {confirmDeleteId && (

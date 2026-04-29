@@ -67,13 +67,15 @@ export function DataProvider({ children }) {
   const { user } = useAuth();
   const email = user?.email ?? null;
 
-  const [salesRaw,    setSalesRaw]    = useState([]);
-  const [expensesRaw, setExpensesRaw] = useState([]);
+  const [salesRaw,       setSalesRaw]       = useState([]);
+  const [expensesRaw,    setExpensesRaw]    = useState([]);
+  const [importHistRaw,  setImportHistRaw]  = useState([]);
 
-  // Load the right user's data whenever the authenticated user changes
+  // Chargement des données utilisateur à chaque changement de session
   useEffect(() => {
     setSalesRaw(loadData(email, 'sales'));
     setExpensesRaw(loadData(email, 'expenses'));
+    setImportHistRaw(loadData(email, 'imports'));
   }, [email]);
 
   // Wrapped setters that auto-persist
@@ -89,6 +91,15 @@ export function DataProvider({ children }) {
     setExpensesRaw((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
       saveData(email, 'expenses', next);
+      return next;
+    });
+  }, [email]);
+
+  // Ajout d'une entrée dans l'historique d'imports
+  const addImportRecord = useCallback((entry) => {
+    setImportHistRaw((prev) => {
+      const next = [{ ...entry, id: Date.now() }, ...prev].slice(0, 50);
+      saveData(email, 'imports', next);
       return next;
     });
   }, [email]);
@@ -200,6 +211,8 @@ export function DataProvider({ children }) {
       importSales,
       importExpenses,
       importAll,
+      importHistory: importHistRaw,
+      addImportRecord,
       kpis,
       treasury,
       MONTHLY_DATA,

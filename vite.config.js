@@ -10,5 +10,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false
+  },
+  optimizeDeps: {
+    // Tesseract.js spawns Web Workers dynamically — exclude from pre-bundling
+    exclude: ['tesseract.js']
   }
 });

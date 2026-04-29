@@ -1,4 +1,10 @@
-import * as XLSX from 'xlsx';
+// xlsx chargé dynamiquement — réduit le bundle initial
+let _XLSX = null;
+async function loadXLSX() {
+  if (_XLSX) return _XLSX;
+  _XLSX = await import('xlsx');
+  return _XLSX;
+}
 
 // ─── Header synonym maps ──────────────────────────────────────────────────────
 const HEADER_MAP = {
@@ -95,16 +101,27 @@ function fillAmounts(ht, tva, ttc) {
 
 /** Read a File object and return raw 2-D array (first row = headers) */
 export async function parseFile(file) {
+  const XLSX = await loadXLSX();
+  const ext  = (file.name || '').split('.').pop().toLowerCase();
+
+  // CSV: read as UTF-8 text then let SheetJS parse it
+  if (ext === 'csv') {
+    const text = await file.text();
+    const wb   = XLSX.read(text, { type: 'string' });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+    return rows.filter((r) => r.some((c) => c !== ''));
+  }
+
+  // Excel (.xls / .xlsx): binary read
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb = XLSX.read(e.target.result, { type: 'binary', cellDates: false });
-        const ws = wb.Sheets[wb.SheetNames[0]];
+        const wb   = XLSX.read(e.target.result, { type: 'binary', cellDates: false });
+        const ws   = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-        // Drop fully-empty trailing rows
-        const trimmed = rows.filter((r) => r.some((c) => c !== ''));
-        resolve(trimmed);
+        resolve(rows.filter((r) => r.some((c) => c !== '')));
       } catch (err) {
         reject(err);
       }

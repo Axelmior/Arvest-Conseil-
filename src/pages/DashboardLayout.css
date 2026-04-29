@@ -377,6 +377,57 @@
   color: #dc2626;
 }
 
+/* ─── Smart Import drop zone ─── */
+.smart-drop {
+  border: 2px dashed #e5e5e5;
+  border-radius: 12px;
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: #fafafa;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.smart-drop:hover,
+.smart-drop--active {
+  border-color: #C6A75E;
+  background: rgba(198, 167, 94, 0.04);
+}
+
+.smart-drop-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(198, 167, 94, 0.1);
+  border: 1px solid rgba(198, 167, 94, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.smart-drop-formats {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.smart-drop-formats span {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  background: #f0f0f0;
+  color: #525252;
+  letter-spacing: 0.04em;
+}
+
 /* Bouton danger */
 .btn-danger {
   background: #dc2626;

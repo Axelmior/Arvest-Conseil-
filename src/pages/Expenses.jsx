@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, Plus, Upload, Edit2, Trash2, ChevronDown, X } from 'lucide-react';
 import { formatEuro, formatEuroDecimal, formatDate } from '../utils/format';
 import { useData } from '../context/DataContext';
-import ImportModal from '../components/ImportModal';
+import UniversalImportModal from '../components/UniversalImportModal';
 import ConfirmModal from '../components/ConfirmModal';
 
 function ExpenseModal({ expense, onClose, onSave }) {
@@ -128,7 +128,7 @@ function ExpenseModal({ expense, onClose, onSave }) {
 }
 
 export default function Expenses() {
-  const { expenses, setExpenses, importAll } = useData();
+  const { expenses, setExpenses } = useData();
   const [search, setSearch] = useState('');
   const [showImport, setShowImport] = useState(false);
   const [typeFilter, setTypeFilter] = useState('all');
@@ -300,10 +300,9 @@ export default function Expenses() {
 
       {showModal && <ExpenseModal expense={editing} onClose={() => { setShowModal(false); setEditing(null); }} onSave={handleSave} />}
       {showImport && (
-        <ImportModal
-          defaultType="expenses"
+        <UniversalImportModal
+          defaultType="expense"
           onClose={() => setShowImport(false)}
-          onImport={(parsed) => { importAll(parsed); setShowImport(false); }}
         />
       )}
       {confirmDeleteId && (
