@@ -4,8 +4,8 @@ import './BottomNav.css';
 
 const NAV = [
   { to: '/dashboard', label: 'Accueil', icon: LayoutDashboard, end: true },
-  { to: '/dashboard/sales', label: 'Ventes', icon: TrendingUp },
-  { to: '/dashboard/expenses', label: 'Charges', icon: Receipt },
+  { to: '/dashboard/sales', label: 'Mes ventes', icon: TrendingUp },
+  { to: '/dashboard/expenses', label: 'Mes dép.', icon: Receipt },
   { to: '/dashboard/treasury', label: 'Tréso', icon: Wallet },
   { to: '/dashboard/analytics', label: 'Analyses', icon: BarChart3 },
 ];

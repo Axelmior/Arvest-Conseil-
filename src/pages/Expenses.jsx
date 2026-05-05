@@ -284,7 +284,9 @@ export default function Expenses() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={COLS.length + 1} style={{ textAlign: 'center', padding: 48, color: '#a3a3a3' }}>
-                    Aucune charge ne correspond à vos filtres.
+                    {expenses.length === 0
+                      ? 'Ajoutez votre première dépense ou importez votre relevé bancaire pour voir vos analyses s\'activer.'
+                      : 'Aucune dépense ne correspond à vos filtres.'}
                   </td>
                 </tr>
               )}

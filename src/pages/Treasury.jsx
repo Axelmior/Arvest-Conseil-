@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Wallet, ArrowUpRight, ArrowDownRight, Zap } from 'lucide-react';
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import KPICard from '../components/KPICard';
-import { formatEuro, formatDate } from '../utils/format';
+import { formatEuro, formatDate, getChartScale, makeChartFormatter } from '../utils/format';
 import { useData } from '../context/DataContext';
 
 export default function Treasury() {
@@ -37,6 +37,10 @@ export default function Treasury() {
     }
     return points;
   }, [solde, futureFlows]);
+
+  const forecastScale = getChartScale(
+    Math.max(0, ...forecastData.map((d) => Math.abs(d.solde || 0)))
+  );
 
   const incoming = futureFlows.filter((f) => f.kind === 'sale');
   const outgoing = futureFlows.filter((f) => f.kind === 'expense');
@@ -110,7 +114,7 @@ export default function Treasury() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
               <XAxis dataKey="label" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} />
-              <YAxis stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+              <YAxis stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={makeChartFormatter(forecastScale)} />
               <Tooltip
                 contentStyle={{ background: 'white', border: '1px solid #e5e5e5', borderRadius: 8, fontSize: 12 }}
                 formatter={(v) => [formatEuro(v), 'Solde']}

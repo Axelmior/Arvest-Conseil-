@@ -17,8 +17,8 @@ import './Sidebar.css';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/dashboard/sales', label: 'Ventes', icon: TrendingUp },
-  { to: '/dashboard/expenses', label: 'Charges', icon: Receipt },
+  { to: '/dashboard/sales', label: 'Mes ventes', icon: TrendingUp },
+  { to: '/dashboard/expenses', label: 'Mes dépenses', icon: Receipt },
   { to: '/dashboard/treasury', label: 'Trésorerie', icon: Wallet },
   { to: '/dashboard/analytics', label: 'Analyses', icon: BarChart3 },
   { to: '/dashboard/settings', label: 'Paramètres', icon: Settings }

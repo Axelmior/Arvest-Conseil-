@@ -9,7 +9,7 @@ import {
   ResponsiveContainer, ComposedChart, Line,
 } from 'recharts';
 import { useData } from '../context/DataContext';
-import { formatEuro, formatDate } from '../utils/format';
+import { formatEuro, formatDate, getChartScale, makeChartFormatter } from '../utils/format';
 
 // ── tiny helpers ──────────────────────────────────────────────────────────────
 
@@ -332,13 +332,23 @@ export default function Analytics() {
         <Sparkles size={32} color="#C6A75E" />
         <div style={{ fontSize: 16, fontWeight: 600, color: '#171717' }}>Pas encore de données à analyser</div>
         <p style={{ fontSize: 13, color: '#737373', maxWidth: 360, lineHeight: 1.6 }}>
-          Ajoutez des ventes et des charges pour que vos analyses, alertes et recommandations apparaissent ici.
+          Ajoutez votre première facture ou importez votre relevé bancaire pour voir vos analyses s&apos;activer.
         </p>
       </div>
     );
   }
 
   const alertCount = alerts.filter((a) => a.type !== 'success').length;
+
+  const clientBarScale = getChartScale(
+    Math.max(0, ...clientStats.slice(0, 10).map((c) => c.ca))
+  );
+  const supplierBarScale = getChartScale(
+    Math.max(0, ...supplierStats.slice(0, 8).map((s) => s.total))
+  );
+  const companyChartScale = getChartScale(
+    Math.max(0, ...companyStats.monthlyWithMargin.flatMap((m) => [m.ca || 0, m.charges || 0]))
+  );
 
   return (
     <>
@@ -417,7 +427,7 @@ export default function Analytics() {
                     margin={{ top: 0, right: 16, left: 8, bottom: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                    <XAxis type="number" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                    <XAxis type="number" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={makeChartFormatter(clientBarScale)} />
                     <YAxis type="category" dataKey="name" stroke="#a3a3a3" fontSize={12} axisLine={false} tickLine={false} width={140} />
                     <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [formatEuro(v), 'CA TTC']} />
                     <Bar dataKey="ca" fill="#C6A75E" radius={[0, 4, 4, 0]} maxBarSize={28} />
@@ -521,7 +531,7 @@ export default function Analytics() {
                     margin={{ top: 0, right: 16, left: 8, bottom: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                    <XAxis type="number" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                    <XAxis type="number" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={makeChartFormatter(supplierBarScale)} />
                     <YAxis type="category" dataKey="name" stroke="#a3a3a3" fontSize={12} axisLine={false} tickLine={false} width={140} />
                     <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [formatEuro(v), 'Charges TTC']} />
                     <Bar dataKey="total" fill="#1a1a1a" radius={[0, 4, 4, 0]} maxBarSize={28} />
@@ -641,7 +651,7 @@ export default function Analytics() {
                 <ComposedChart data={companyStats.monthlyWithMargin} margin={{ top: 5, right: 40, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                   <XAxis dataKey="month" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} />
-                  <YAxis yAxisId="left" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                  <YAxis yAxisId="left" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={makeChartFormatter(companyChartScale)} />
                   <YAxis yAxisId="right" orientation="right" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} domain={[0, 100]} />
                   <Tooltip
                     contentStyle={TOOLTIP_STYLE}

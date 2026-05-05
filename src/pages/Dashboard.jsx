@@ -11,13 +11,20 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import KPICard from '../components/KPICard';
-import { formatEuro } from '../utils/format';
+import { formatEuro, getChartScale, makeChartFormatter } from '../utils/format';
 import { useData } from '../context/DataContext';
 
 export default function Dashboard() {
   const { kpis, treasury, MONTHLY_DATA, CASH_EVOLUTION, CATEGORY_DATA, TOP_CLIENTS } = useData();
 
   const categoryTotal = CATEGORY_DATA.reduce((s, c) => s + c.value, 0);
+
+  const caChartScale = getChartScale(
+    Math.max(0, ...MONTHLY_DATA.flatMap((d) => [d.ca || 0, d.charges || 0]))
+  );
+  const treasuryChartScale = getChartScale(
+    Math.max(0, ...CASH_EVOLUTION.map((d) => Math.abs(d.solde || 0)))
+  );
 
   return (
     <>
@@ -83,7 +90,7 @@ export default function Dashboard() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                 <XAxis dataKey="month" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} />
-                <YAxis stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
+                <YAxis stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={makeChartFormatter(caChartScale)} />
                 <Tooltip
                   contentStyle={{ background: 'white', border: '1px solid #e5e5e5', borderRadius: 8, fontSize: 12 }}
                   formatter={(v) => formatEuro(v)}
@@ -190,7 +197,7 @@ export default function Dashboard() {
               <LineChart data={CASH_EVOLUTION} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                 <XAxis dataKey="day" stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} />
-                <YAxis stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
+                <YAxis stroke="#a3a3a3" fontSize={11} axisLine={false} tickLine={false} tickFormatter={makeChartFormatter(treasuryChartScale)} />
                 <Tooltip
                   contentStyle={{ background: 'white', border: '1px solid #e5e5e5', borderRadius: 8, fontSize: 12 }}
                   formatter={(v) => formatEuro(v)}

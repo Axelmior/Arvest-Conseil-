@@ -10,8 +10,8 @@ import './DashboardLayout.css';
 
 const PAGE_META = {
   '/dashboard':            { title: 'Tableau de bord',  subtitle: "Vue d'ensemble de votre activité" },
-  '/dashboard/sales':      { title: 'Ventes',            subtitle: "Suivez votre chiffre d'affaires" },
-  '/dashboard/expenses':   { title: 'Charges',           subtitle: 'Gérez vos dépenses professionnelles' },
+  '/dashboard/sales':      { title: 'Mes ventes',         subtitle: "Suivez votre chiffre d'affaires" },
+  '/dashboard/expenses':   { title: 'Mes dépenses',      subtitle: 'Gérez vos dépenses professionnelles' },
   '/dashboard/treasury':   { title: 'Trésorerie',        subtitle: 'Pilotez votre flux de trésorerie' },
   '/dashboard/analytics':  { title: 'Analyses',          subtitle: 'Indicateurs et recommandations stratégiques' },
   '/dashboard/settings':   { title: 'Paramètres',        subtitle: 'Configurez votre compte et votre entreprise' },
