@@ -313,14 +313,23 @@ textarea:focus {
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
 
+.grid-2-mobile {
+  grid-template-columns: repeat(2, 1fr);
+  align-items: end;
+}
+
 @media (max-width: 768px) {
   .grid-2,
   .grid-3,
   .grid-4 {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 360px) {
   .grid-2-mobile {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 }
 
