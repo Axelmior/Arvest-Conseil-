@@ -41,7 +41,7 @@ function ExpenseModal({ expense, onClose, onSave }) {
           </button>
         </div>
         <div className="modal-body">
-          <div className="grid grid-2-mobile" style={{ gap: 12 }}>
+          <div className="grid grid-2-mobile" style={{ gap: 12, columnGap: 20 }}>
             <div>
               <label className="label">Date</label>
               <input type="date" className="input" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
