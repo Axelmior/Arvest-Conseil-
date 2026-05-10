@@ -2,7 +2,7 @@
    EXECUTIVE ALERTS — minimal, decision-first
    ═══════════════════════════════════════════════════════════════ */
 
-.exec-alerts-wrap { margin-bottom: 20px; }
+.exec-alerts-wrap { margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px; }
 
 /* ─── Health bar ─────────────────────────────────────────────── */
 
@@ -13,7 +13,6 @@
   padding: 11px 16px;
   border-radius: 10px;
   border: 1px solid;
-  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 
@@ -57,6 +56,41 @@
   .exec-health-progress { display: none; }
 }
 
+/* ─── Section groupes ────────────────────────────────────────── */
+
+.exec-alerts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exec-alerts-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0 2px;
+}
+
+/* ─── Toggle positifs ────────────────────────────────────────── */
+
+.exec-alerts-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #525252;
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+.exec-alerts-toggle:hover { background: #f5f5f5; }
+
 /* ─── Alert cards row ────────────────────────────────────────── */
 
 .exec-alerts-row {
@@ -67,7 +101,7 @@
 
 @media (min-width: 640px) {
   .exec-alerts-row {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }
 
@@ -81,21 +115,43 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: box-shadow 0.15s, transform 0.1s;
+}
+
+.exec-alert-card:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.exec-alert-card:focus-visible {
+  outline: 2px solid #C6A75E;
+  outline-offset: 2px;
 }
 
 .exec-alert-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  flex-wrap: wrap;
 }
 
 .exec-alert-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.exec-alert-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   flex-shrink: 0;
 }
 
@@ -103,6 +159,7 @@
   font-size: 13px;
   font-weight: 700;
   line-height: 1.3;
+  flex: 1;
 }
 
 .exec-alert-impact {
@@ -134,3 +191,66 @@
   font-size: 13px;
   color: #14532d;
 }
+
+/* ─── Inline contextual (Analytics) ─────────────────────────── */
+
+.exec-alerts-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* ─── Carte complète (onglet Alertes) ───────────────────────── */
+
+.exec-full-alert-card {
+  border: 1px solid;
+  border-left-width: 3px;
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exec-full-detail {
+  font-size: 12px;
+  color: #525252;
+  line-height: 1.5;
+  display: flex;
+  gap: 6px;
+}
+
+.exec-full-label {
+  font-weight: 700;
+  color: #737373;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 52px;
+}
+
+.exec-full-action {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  border-top: 1px solid;
+  padding-top: 10px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.exec-full-cta {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.exec-full-cta:hover { opacity: 0.88; }

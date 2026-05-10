@@ -175,7 +175,7 @@ export default function AdminPanel() {
         }}>
           {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Logo />
+            <Logo light />
             <span style={{
               padding: '3px 9px', borderRadius: 5,
               background: 'rgba(198,167,94,0.2)', color: '#C6A75E',

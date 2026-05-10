@@ -11,6 +11,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import KPICard from '../components/KPICard';
+import AlertsPanel from '../components/AlertsPanel';
 import { formatEuro, getChartScale, makeChartFormatter } from '../utils/format';
 import { useData } from '../context/DataContext';
 
@@ -28,6 +29,9 @@ export default function Dashboard() {
 
   return (
     <>
+      {/* Alertes financières */}
+      <AlertsPanel />
+
       {/* KPIs */}
       <div className="dash-kpis">
         <KPICard

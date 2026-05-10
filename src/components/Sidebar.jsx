@@ -41,7 +41,9 @@ export default function Sidebar({ mobileOpen, onClose }) {
   const content = (
     <>
       <div className="sidebar-header">
-        <Logo />
+        <div onClick={onClose}>
+          <Logo to="/dashboard" size={30} />
+        </div>
         <button className="sidebar-close" onClick={onClose} aria-label="Fermer le menu">
           <X size={18} />
         </button>

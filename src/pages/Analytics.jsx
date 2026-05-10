@@ -10,6 +10,8 @@ import {
 } from 'recharts';
 import { useData } from '../context/DataContext';
 import { formatEuro, formatDate, getChartScale, makeChartFormatter } from '../utils/format';
+import { ContextualAlerts, FullAlertsList } from '../components/AlertsPanel';
+import { computeAlerts } from '../utils/alertEngine';
 
 // ── tiny helpers ──────────────────────────────────────────────────────────────
 
@@ -54,34 +56,6 @@ function Trend({ pct }) {
   );
 }
 
-function AlertCard({ type, icon: Icon, title, body }) {
-  const palette = {
-    danger:  { bg: '#fef2f2', border: '#fee2e2', icon: '#dc2626', title: '#b91c1c' },
-    warning: { bg: '#fffbeb', border: '#fef3c7', icon: '#d97706', title: '#b45309' },
-    success: { bg: '#f0fdf4', border: '#dcfce7', icon: '#059669', title: '#047857' },
-    info:    { bg: '#f0f9ff', border: '#e0f2fe', icon: '#0284c7', title: '#0369a1' },
-  };
-  const c = palette[type] || palette.info;
-  return (
-    <div style={{
-      padding: 16, borderRadius: 12,
-      background: c.bg, border: `1px solid ${c.border}`,
-      display: 'flex', gap: 12, alignItems: 'flex-start',
-    }}>
-      <div style={{
-        flexShrink: 0, width: 36, height: 36, borderRadius: 8,
-        background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-      }}>
-        {Icon && <Icon size={18} color={c.icon} />}
-      </div>
-      <div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: c.title, marginBottom: 2 }}>{title}</div>
-        <div style={{ fontSize: 13, color: '#525252', lineHeight: 1.5 }}>{body}</div>
-      </div>
-    </div>
-  );
-}
 
 const TABS = [
   { id: 'clients',   label: 'Clients',      icon: Users },
@@ -94,7 +68,7 @@ const TABS = [
 const TOOLTIP_STYLE = { background: 'white', border: '1px solid #e5e5e5', borderRadius: 8, fontSize: 12 };
 
 export default function Analytics() {
-  const { sales, expenses, treasury, futureFlows } = useData();
+  const { sales, expenses, kpis, treasury, futureFlows } = useData();
   const [tab, setTab] = useState('clients');
 
   // ── Client analytics ──────────────────────────────────────────────────────
@@ -279,51 +253,11 @@ export default function Analytics() {
     };
   }, [treasury, futureFlows, expenses]);
 
-  // ── Alerts ────────────────────────────────────────────────────────────────
-  const alerts = useMemo(() => {
-    const list = [];
-    const { daysRemaining, isCritical, isWarning } = treasuryStats;
-
-    if (isCritical) {
-      list.push({ type: 'danger', icon: AlertTriangle, title: 'Trésorerie critique', body: `Seulement ${daysRemaining} jours de trésorerie restants au rythme actuel. Agissez immédiatement.` });
-    } else if (isWarning) {
-      list.push({ type: 'warning', icon: AlertTriangle, title: 'Tension de trésorerie', body: `${daysRemaining} jours de trésorerie restants. Anticipez vos encaissements.` });
-    }
-
-    const lateClients = clientStats.filter((c) => c.late > 0);
-    if (lateClients.length > 0) {
-      const amt = lateClients.reduce((s, c) => s + c.lateAmount, 0);
-      list.push({ type: 'warning', icon: Clock, title: `${lateClients.length} client${lateClients.length > 1 ? 's' : ''} en retard de paiement`, body: `${formatEuro(amt)} sur des factures dont l'échéance est dépassée.` });
-    }
-
-    const topShare = clientStats[0] && totalCA > 0 ? clientStats[0].ca / totalCA * 100 : 0;
-    if (clientStats.length > 1 && topShare > 50) {
-      list.push({ type: 'warning', icon: Users, title: 'Forte dépendance client', body: `${clientStats[0].name} représente ${Math.round(topShare)}% de votre CA. Diversifiez votre portefeuille.` });
-    }
-
-    if (companyStats.globalMargin < 20 && totalCA > 0) {
-      list.push({ type: 'danger', icon: TrendingDown, title: 'Marge nette faible', body: `Votre marge nette est de ${companyStats.globalMargin}%. Identifiez les charges à optimiser.` });
-    }
-
-    if (companyStats.growthMoM > 15 && companyStats.currentMonth?.ca > 0) {
-      list.push({ type: 'success', icon: TrendingUp, title: 'Forte croissance ce mois', body: `CA en hausse de +${companyStats.growthMoM}% vs le mois précédent.` });
-    }
-
-    const md = companyStats.monthlyWithMargin;
-    if (md.at(-2)?.charges > 0 && md.at(-1)?.charges > md.at(-2).charges * 1.2) {
-      const pct = Math.round((md.at(-1).charges / md.at(-2).charges - 1) * 100);
-      list.push({ type: 'warning', icon: TrendingUp, title: 'Charges en forte hausse', body: `Vos charges ont augmenté de ${pct}% ce mois-ci par rapport au précédent.` });
-    }
-
-    if (companyStats.breakEven > 0 && totalCA > 0 && totalCA < companyStats.breakEven) {
-      list.push({ type: 'warning', icon: Target, title: 'Seuil de rentabilité non atteint', body: `Il vous manque ${formatEuro(companyStats.breakEven - totalCA)} pour atteindre votre point mort (${formatEuro(companyStats.breakEven)}).` });
-    }
-
-    if (list.length === 0) {
-      list.push({ type: 'success', icon: CheckCircle2, title: 'Situation saine', body: 'Aucune alerte détectée. Votre activité financière est dans les clous.' });
-    }
-    return list;
-  }, [clientStats, companyStats, treasuryStats, totalCA]);
+  // ── Alertes (moteur centralisé) ───────────────────────────────────────────
+  const alerts = useMemo(
+    () => computeAlerts({ sales, expenses, kpis, treasury, futureFlows }),
+    [sales, expenses, kpis, treasury, futureFlows],
+  );
 
   // ── Empty state ───────────────────────────────────────────────────────────
   if (sales.length === 0 && expenses.length === 0) {
@@ -338,7 +272,7 @@ export default function Analytics() {
     );
   }
 
-  const alertCount = alerts.filter((a) => a.type !== 'success').length;
+  const alertCount = alerts.filter((a) => a.type === 'critical' || a.type === 'warning').length;
 
   const clientBarScale = getChartScale(
     Math.max(0, ...clientStats.slice(0, 10).map((c) => c.ca))
@@ -390,6 +324,7 @@ export default function Analytics() {
       ════════════════════════════════════════════════ */}
       {tab === 'clients' && (
         <>
+          <ContextualAlerts categories={['billing', 'risk']} />
           <div className="module-stats" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
             <Stat label="Clients actifs" value={clientStats.length} icon={Users} />
             <Stat label="Panier moyen" value={formatEuro(avgBasket)} icon={Zap} />
@@ -589,6 +524,7 @@ export default function Analytics() {
       ════════════════════════════════════════════════ */}
       {tab === 'company' && (
         <>
+          <ContextualAlerts categories={['profitability', 'activity']} />
           <div className="module-stats" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
             <Stat
               label="Croissance mois"
@@ -726,6 +662,7 @@ export default function Analytics() {
       ════════════════════════════════════════════════ */}
       {tab === 'treasury' && (
         <>
+          <ContextualAlerts categories={['treasury']} />
           <div className="module-stats" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
             <Stat
               label="Solde actuel"
@@ -858,14 +795,7 @@ export default function Analytics() {
           ALERTES
       ════════════════════════════════════════════════ */}
       {tab === 'alerts' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {alertCount === 0 && (
-            <div style={{ fontSize: 13, color: '#737373', marginBottom: 4 }}>
-              Toutes les métriques sont dans les seuils normaux.
-            </div>
-          )}
-          {alerts.map((a, i) => <AlertCard key={i} {...a} />)}
-        </div>
+        <FullAlertsList />
       )}
     </>
   );

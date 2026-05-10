@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Menu, Bell, CheckCheck, Clock, Wallet, TrendingUp, TrendingDown, Receipt } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
+import Logo from './Logo';
 import './TopBar.css';
 
 const ICON_MAP = {
@@ -50,6 +51,7 @@ export default function TopBar({ title, subtitle, onMenuClick, children }) {
         <button className="topbar-menu" onClick={onMenuClick} aria-label="Ouvrir le menu">
           <Menu size={20} />
         </button>
+        <Logo compact to="/dashboard" className="topbar-logo" />
         <div>
           <h1 className="topbar-title">{title}</h1>
           {subtitle && <p className="topbar-subtitle">{subtitle}</p>}
