@@ -159,7 +159,9 @@ export function AuthProvider({ children }) {
   // ── Signup ────────────────────────────────────────────────────────────────
   const signup = async ({ email, name, company, password }) => {
     const existing = findInRegistry(email);
-    if (existing) { completeLogin(existing); return existing; }
+    if (existing) {
+      throw new Error('Un compte existe déjà avec cet email. Connectez-vous.');
+    }
     const entry = buildEntry(email, name, company);
     if (password) entry.passwordHash = hashPassword(password);
     upsertRegistry(entry);
@@ -169,11 +171,9 @@ export function AuthProvider({ children }) {
 
   // ── Login ─────────────────────────────────────────────────────────────────
   const login = async ({ email, password }) => {
-    let entry = findInRegistry(email);
+    const entry = findInRegistry(email);
     if (!entry) {
-      entry = buildEntry(email, '', '');
-      if (password) entry.passwordHash = hashPassword(password);
-      upsertRegistry(entry);
+      throw new Error('Aucun compte trouvé pour cet email.');
     }
     if (entry.passwordHash && password && hashPassword(password) !== entry.passwordHash) {
       throw new Error('Mot de passe incorrect.');
@@ -236,7 +236,9 @@ export function AuthProvider({ children }) {
   // ── Password reset ────────────────────────────────────────────────────────
   const generateResetToken = useCallback((email) => {
     const entry = findInRegistry(email);
-    const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    const token = Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
     const expiry = Date.now() + 3_600_000; // 1 hour
     localStorage.setItem(`arvest_reset_${email.toLowerCase()}`, JSON.stringify({ token, expiry }));
     return { token, name: entry?.name || '' };

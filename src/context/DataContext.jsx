@@ -98,23 +98,25 @@ export function DataProvider({ children }) {
   // Ajout d'une entrée dans l'historique d'imports
   const addImportRecord = useCallback((entry) => {
     setImportHistRaw((prev) => {
-      const next = [{ ...entry, id: Date.now() }, ...prev].slice(0, 50);
+      const next = [{ ...entry, id: crypto.randomUUID() }, ...prev].slice(0, 50);
       saveData(email, 'imports', next);
       return next;
     });
   }, [email]);
 
-  // Bulk import helpers
+  // Bulk import helpers — limités à 5 000 lignes pour éviter les saturations mémoire
   const importSales = useCallback((rows) => {
+    const limited = rows.slice(0, 5000);
     setSales((prev) => [
-      ...rows.map((r, i) => ({ ...r, id: Date.now() + i })),
+      ...limited.map((r) => ({ ...r, id: crypto.randomUUID() })),
       ...prev,
     ]);
   }, [setSales]);
 
   const importExpenses = useCallback((rows) => {
+    const limited = rows.slice(0, 5000);
     setExpenses((prev) => [
-      ...rows.map((r, i) => ({ ...r, id: Date.now() + i })),
+      ...limited.map((r) => ({ ...r, id: crypto.randomUUID() })),
       ...prev,
     ]);
   }, [setExpenses]);
@@ -142,8 +144,29 @@ export function DataProvider({ children }) {
       .filter((x) => x.status === 'paid')
       .reduce((s, x) => s + (parseFloat(x.ttc) || 0), 0);
     const decaissements = expensesRaw.reduce((s, x) => s + (parseFloat(x.ttc) || 0), 0);
-    const solde         = encaissements - decaissements;
-    const previsionJ30  = Math.round(solde * 1.1);
+    const solde = encaissements - decaissements;
+
+    // Prévision J+30 basée sur les vrais flux futurs (factures en attente + dépenses prévues)
+    const today = new Date().toISOString().slice(0, 10);
+    const h30   = new Date();
+    h30.setDate(h30.getDate() + 30);
+    const maxJ30 = h30.toISOString().slice(0, 10);
+
+    const cashIn30 = salesRaw
+      .filter((s) => {
+        const d = s.dueDate || s.date;
+        return s.status === 'pending' && d >= today && d <= maxJ30;
+      })
+      .reduce((s, x) => s + (parseFloat(x.ttc) || 0), 0);
+
+    const cashOut30 = expensesRaw
+      .filter((e) => {
+        const d = e.dueDate || e.date;
+        return d >= today && d <= maxJ30;
+      })
+      .reduce((s, x) => s + (parseFloat(x.ttc) || 0), 0);
+
+    const previsionJ30 = Math.round(solde + cashIn30 - cashOut30);
     return { solde, encaissements, decaissements, previsionJ30 };
   }, [salesRaw, expensesRaw]);
 

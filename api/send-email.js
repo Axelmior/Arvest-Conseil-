@@ -1,9 +1,20 @@
 import { Resend } from 'resend';
 
-const resend  = new Resend(process.env.RESEND_API_KEY);
-const FROM    = process.env.RESEND_FROM    || 'Arvest Pilot <onboarding@resend.dev>';
-const REPLY   = process.env.RESEND_REPLY   || 'arvest-conseil@outlook.com';
-const APP_URL = process.env.APP_URL        || 'https://arvest-pilot.vercel.app';
+const resend       = new Resend(process.env.RESEND_API_KEY);
+const FROM         = process.env.RESEND_FROM    || 'Arvest Pilot <onboarding@resend.dev>';
+const REPLY        = process.env.RESEND_REPLY   || 'arvest-conseil@outlook.com';
+const APP_URL      = process.env.APP_URL        || 'https://arvest-pilot.vercel.app';
+const ALLOWED_ORIGIN = APP_URL;
+
+// Neutralise les caractères HTML dans les données utilisateur avant injection dans les templates
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#39;');
+}
 
 // ── Shared layout ─────────────────────────────────────────────────────────────
 
@@ -66,7 +77,7 @@ function checkRow(text) {
 // ── Templates ──────────────────────────────────────────────────────────────────
 
 function welcome({ name }) {
-  const first = (name || '').split(' ')[0] || 'cher dirigeant';
+  const first = escapeHtml((name || '').split(' ')[0] || 'cher dirigeant');
   return {
     subject: 'Bienvenue sur Arvest Pilot',
     html: layout(`
@@ -96,7 +107,7 @@ function welcome({ name }) {
 }
 
 function accessGranted({ name }) {
-  const first = (name || '').split(' ')[0] || 'cher dirigeant';
+  const first = escapeHtml((name || '').split(' ')[0] || 'cher dirigeant');
   return {
     subject: 'Votre accès Arvest Pilot est activé ✅',
     html: layout(`
@@ -144,17 +155,19 @@ const TYPE_STYLE = {
 };
 
 function alert({ name, notification }) {
-  const first = (name || '').split(' ')[0] || 'cher dirigeant';
+  const first   = escapeHtml((name || '').split(' ')[0] || 'cher dirigeant');
+  const title   = escapeHtml(notification?.title   || 'Alerte financière');
+  const message = escapeHtml(notification?.message || '');
   const s = TYPE_STYLE[notification?.type] || TYPE_STYLE.info;
   return {
-    subject: `Alerte Arvest Pilot : ${notification?.title || 'Alerte financière'}`,
+    subject: `Alerte Arvest Pilot : ${title}`,
     html: layout(`
       <p style="margin:0 0 20px;font-size:15px;color:#4b5563;">Bonjour ${first},</p>
 
       <div style="background:${s.bg};border:1px solid ${s.border};border-left:4px solid ${s.accent};border-radius:8px;padding:18px 20px;margin:0 0 24px;">
         <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:${s.accent};text-transform:uppercase;letter-spacing:0.06em;">${s.label}</p>
-        <p style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111111;">${notification?.title}</p>
-        <p style="margin:0;font-size:14px;color:#4b5563;line-height:1.6;">${notification?.message}</p>
+        <p style="margin:0 0 8px;font-size:16px;font-weight:600;color:#111111;">${title}</p>
+        <p style="margin:0;font-size:14px;color:#4b5563;line-height:1.6;">${message}</p>
       </div>
 
       <p style="margin:0 0 28px;font-size:14px;color:#6b7280;line-height:1.7;">Connectez-vous à votre tableau de bord pour analyser la situation et prendre les mesures adaptées.</p>
@@ -174,11 +187,12 @@ function alert({ name, notification }) {
 }
 
 function inactivity({ name, daysSince }) {
-  const first = (name || '').split(' ')[0] || 'cher dirigeant';
+  const first = escapeHtml((name || '').split(' ')[0] || 'cher dirigeant');
+  const days  = parseInt(daysSince, 10) || 0;
   return {
     subject: 'Votre tableau de bord Arvest Pilot vous attend',
     html: layout(`
-      <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#111111;letter-spacing:-0.5px;">Cela fait ${daysSince} jours…</h1>
+      <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#111111;letter-spacing:-0.5px;">Cela fait ${days} jours…</h1>
       <p style="margin:0 0 24px;font-size:15px;color:#4b5563;line-height:1.7;">
         Bonjour ${first}, votre tableau de bord financier vous attend. Vos données ont peut-être évolué depuis votre dernière visite.
       </p>
@@ -209,7 +223,7 @@ function inactivity({ name, daysSince }) {
 }
 
 function passwordReset({ name, resetUrl }) {
-  const first = (name || '').split(' ')[0];
+  const first = escapeHtml((name || '').split(' ')[0]);
   return {
     subject: 'Réinitialisation de votre mot de passe Arvest Pilot',
     html: layout(`
@@ -241,7 +255,8 @@ function passwordReset({ name, resetUrl }) {
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin',  '*');
+  res.setHeader('Access-Control-Allow-Origin',  ALLOWED_ORIGIN);
+  res.setHeader('Vary',                         'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
